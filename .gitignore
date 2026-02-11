@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Config with secrets
+config/config.yaml
+
+# Output data
+output/
+!output/.gitkeep
+
+# IDE
+.vscode/
+.idea/

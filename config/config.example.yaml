@@ -1,0 +1,15 @@
+# NewsCollector Configuration
+# Copy this file to config.yaml and fill in your API keys.
+#   cp config/config.example.yaml config/config.yaml
+
+# NewsAPI.org — free tier: https://newsapi.org/register
+newsapi:
+  api_key: "YOUR_NEWSAPI_KEY_HERE"
+
+# X/Twitter API — https://developer.twitter.com/en/portal/dashboard
+twitter:
+  bearer_token: "YOUR_TWITTER_BEARER_TOKEN_HERE"
+
+# YouTube Data API v3 — https://console.cloud.google.com/apis/credentials
+youtube:
+  api_key: "YOUR_YOUTUBE_API_KEY_HERE"

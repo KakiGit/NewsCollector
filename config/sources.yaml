@@ -1,0 +1,102 @@
+# RSS feed sources organized by region.
+# Each entry has a name (publisher) and url (RSS feed URL).
+
+rss_sources:
+
+  # ── Europe ──────────────────────────────────────────────────────────
+  europe:
+    # United Kingdom
+    - name: "BBC News"
+      url: "https://feeds.bbci.co.uk/news/rss.xml"
+    - name: "Reuters"
+      url: "https://www.reutersagency.com/feed/"
+    - name: "The Guardian"
+      url: "https://www.theguardian.com/world/rss"
+
+    # France
+    - name: "Le Monde"
+      url: "https://www.lemonde.fr/rss/une.xml"
+    - name: "France 24"
+      url: "https://www.france24.com/en/rss"
+
+    # Germany
+    - name: "Der Spiegel (International)"
+      url: "https://www.spiegel.de/international/index.rss"
+    - name: "Deutsche Welle"
+      url: "https://rss.dw.com/rdf/rss-en-all"
+
+    # Spain
+    - name: "El País (English)"
+      url: "https://feeds.elpais.com/mrss-s/pages/ep/site/english.elpais.com/portada"
+
+    # Italy
+    - name: "ANSA (English)"
+      url: "https://www.ansa.it/english/news/rss.xml"
+
+    # Netherlands
+    - name: "NOS Nieuws"
+      url: "https://feeds.nos.nl/nosnieuwsalgemeen"
+    - name: "Dutch News"
+      url: "https://www.dutchnews.nl/feed/"
+
+  # ── USA ─────────────────────────────────────────────────────────────
+  usa:
+    - name: "CNN"
+      url: "http://rss.cnn.com/rss/edition.rss"
+    - name: "AP News"
+      url: "https://rsshub.app/apnews/topics/apf-topnews"
+    - name: "NPR News"
+      url: "https://feeds.npr.org/1001/rss.xml"
+    - name: "New York Times"
+      url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+    - name: "Washington Post"
+      url: "https://feeds.washingtonpost.com/rss/world"
+
+  # ── China ───────────────────────────────────────────────────────────
+  china:
+    - name: "Xinhua News"
+      url: "http://www.news.cn/rss/english.xml"
+    - name: "CGTN"
+      url: "https://www.cgtn.com/subscribe/rss/section/world.xml"
+    - name: "South China Morning Post"
+      url: "https://www.scmp.com/rss/91/feed"
+    - name: "China Daily"
+      url: "https://www.chinadaily.com.cn/rss/world_rss.xml"
+
+  # ── Japan ───────────────────────────────────────────────────────────
+  japan:
+    - name: "NHK World"
+      url: "https://www3.nhk.or.jp/rss/news/cat0.xml"
+    - name: "The Japan Times"
+      url: "https://www.japantimes.co.jp/feed/"
+    - name: "Kyodo News"
+      url: "https://english.kyodonews.net/rss/all.xml"
+
+  # ── South Korea ─────────────────────────────────────────────────────
+  south_korea:
+    - name: "Yonhap News"
+      url: "https://en.yna.co.kr/RSS/news.xml"
+    - name: "The Korea Herald"
+      url: "http://www.koreaherald.com/common/rss_xml.php?ct=102"
+    - name: "Korea JoongAng Daily"
+      url: "https://koreajoongangdaily.joins.com/xmls/joins_rss.xml"
+
+  # ── India ───────────────────────────────────────────────────────────
+  india:
+    - name: "Times of India"
+      url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+    - name: "NDTV"
+      url: "https://feeds.feedburner.com/ndtvnews-top-stories"
+    - name: "The Hindu"
+      url: "https://www.thehindu.com/feeder/default.rss"
+    - name: "Hindustan Times"
+      url: "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+
+  # ── Vietnam ─────────────────────────────────────────────────────────
+  vietnam:
+    - name: "VnExpress International"
+      url: "https://e.vnexpress.net/rss/news.rss"
+    - name: "Tuoi Tre News"
+      url: "https://tuoitrenews.vn/rss/news.rss"
+    - name: "Vietnam News"
+      url: "https://vietnamnews.vn/rss/all-news.rss"
