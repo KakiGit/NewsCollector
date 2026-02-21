@@ -29,21 +29,30 @@ class BaseCollector(ABC):
         ...
 
     @abstractmethod
-    async def collect(self, region: str | None = None) -> CollectionResult:
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         """Collect trending items from this platform.
 
         Args:
             region: Optional region filter (e.g. 'europe', 'china').
+            topic: Optional topic filter (e.g. 'financial' for business/finance only).
 
         Returns:
             CollectionResult with the collected items or an error.
         """
         ...
 
-    async def safe_collect(self, region: str | None = None) -> CollectionResult:
+    async def safe_collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         """Wrapper around collect() that catches exceptions."""
         try:
-            return await self.collect(region=region)
+            return await self.collect(region=region, topic=topic)
         except Exception as exc:
             logger.error("Collection failed for %s: %s", self.platform_name, exc)
             return CollectionResult(

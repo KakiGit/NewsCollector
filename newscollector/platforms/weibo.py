@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from newscollector.models import CollectionResult, TrendingItem
 from newscollector.platforms.base import BaseCollector
@@ -22,7 +21,11 @@ class WeiboCollector(BaseCollector):
     def platform_name(self) -> str:
         return "weibo"
 
-    async def collect(self, region: str | None = None) -> CollectionResult:
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         logger.info("Fetching Weibo hot search list")
 
         async with create_client() as client:

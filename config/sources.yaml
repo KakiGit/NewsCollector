@@ -1,102 +1,221 @@
 # RSS feed sources organized by region.
-# Each entry has a name (publisher) and url (RSS feed URL).
+# Each entry has name, url, and optional language (ISO 639-1).
+# When a region is selected, only feeds whose language matches the region's
+# official language(s) are used.
 
 rss_sources:
 
   # ── Europe ──────────────────────────────────────────────────────────
   europe:
-    # United Kingdom
+    # United Kingdom (en)
     - name: "BBC News"
       url: "https://feeds.bbci.co.uk/news/rss.xml"
+      language: "en"
     - name: "Reuters"
       url: "https://www.reutersagency.com/feed/"
+      language: "en"
     - name: "The Guardian"
       url: "https://www.theguardian.com/world/rss"
+      language: "en"
 
-    # France
+    # France (fr)
     - name: "Le Monde"
       url: "https://www.lemonde.fr/rss/une.xml"
+      language: "fr"
     - name: "France 24"
       url: "https://www.france24.com/en/rss"
+      language: "en"
 
-    # Germany
+    # Germany (de)
     - name: "Der Spiegel (International)"
       url: "https://www.spiegel.de/international/index.rss"
+      language: "en"
     - name: "Deutsche Welle"
       url: "https://rss.dw.com/rdf/rss-en-all"
+      language: "en"
 
-    # Spain
+    # Spain (es)
     - name: "El País (English)"
       url: "https://feeds.elpais.com/mrss-s/pages/ep/site/english.elpais.com/portada"
+      language: "en"
 
-    # Italy
+    # Italy (it)
     - name: "ANSA (English)"
       url: "https://www.ansa.it/english/news/rss.xml"
+      language: "en"
 
-    # Netherlands
+    # Netherlands (nl)
     - name: "NOS Nieuws"
       url: "https://feeds.nos.nl/nosnieuwsalgemeen"
+      language: "nl"
     - name: "Dutch News"
       url: "https://www.dutchnews.nl/feed/"
+      language: "en"
+
+  # ── Finland ─────────────────────────────────────────────────────────────
+  finland:
+    - name: "Yle Uutiset"
+      url: "https://feeds.yle.fi/uutiset/v1/majority/yle_uutiset.rss"
+      language: "fi"
+    - name: "Yle News (English)"
+      url: "https://feeds.yle.fi/uutiset/v1/recent.rss?language=en"
+      language: "en"
+    - name: "Helsingin Sanomat"
+      url: "https://www.hs.fi/rss/tuoreimmat.xml"
+      language: "fi"
+    - name: "Ilta-Sanomat"
+      url: "https://www.is.fi/rss/tuoreimmat.xml"
+      language: "fi"
+    - name: "MTV Uutiset"
+      url: "https://www.mtvuutiset.fi/rss.xml"
+      language: "fi"
 
   # ── USA ─────────────────────────────────────────────────────────────
   usa:
     - name: "CNN"
       url: "http://rss.cnn.com/rss/edition.rss"
+      language: "en"
     - name: "AP News"
       url: "https://rsshub.app/apnews/topics/apf-topnews"
+      language: "en"
     - name: "NPR News"
       url: "https://feeds.npr.org/1001/rss.xml"
+      language: "en"
     - name: "New York Times"
       url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+      language: "en"
     - name: "Washington Post"
       url: "https://feeds.washingtonpost.com/rss/world"
+      language: "en"
 
   # ── China ───────────────────────────────────────────────────────────
   china:
     - name: "Xinhua News"
       url: "http://www.news.cn/rss/english.xml"
+      language: "en"
     - name: "CGTN"
       url: "https://www.cgtn.com/subscribe/rss/section/world.xml"
+      language: "en"
     - name: "South China Morning Post"
       url: "https://www.scmp.com/rss/91/feed"
+      language: "en"
     - name: "China Daily"
       url: "https://www.chinadaily.com.cn/rss/world_rss.xml"
+      language: "en"
 
   # ── Japan ───────────────────────────────────────────────────────────
   japan:
     - name: "NHK World"
       url: "https://www3.nhk.or.jp/rss/news/cat0.xml"
+      language: "en"
     - name: "The Japan Times"
       url: "https://www.japantimes.co.jp/feed/"
+      language: "en"
     - name: "Kyodo News"
       url: "https://english.kyodonews.net/rss/all.xml"
+      language: "en"
 
   # ── South Korea ─────────────────────────────────────────────────────
   south_korea:
     - name: "Yonhap News"
       url: "https://en.yna.co.kr/RSS/news.xml"
+      language: "en"
     - name: "The Korea Herald"
       url: "http://www.koreaherald.com/common/rss_xml.php?ct=102"
+      language: "en"
     - name: "Korea JoongAng Daily"
       url: "https://koreajoongangdaily.joins.com/xmls/joins_rss.xml"
+      language: "en"
 
   # ── India ───────────────────────────────────────────────────────────
   india:
     - name: "Times of India"
       url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+      language: "en"
     - name: "NDTV"
       url: "https://feeds.feedburner.com/ndtvnews-top-stories"
+      language: "en"
     - name: "The Hindu"
       url: "https://www.thehindu.com/feeder/default.rss"
+      language: "en"
     - name: "Hindustan Times"
       url: "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+      language: "en"
 
   # ── Vietnam ─────────────────────────────────────────────────────────
   vietnam:
     - name: "VnExpress International"
       url: "https://e.vnexpress.net/rss/news.rss"
+      language: "en"
     - name: "Tuoi Tre News"
       url: "https://tuoitrenews.vn/rss/news.rss"
+      language: "en"
     - name: "Vietnam News"
       url: "https://vietnamnews.vn/rss/all-news.rss"
+      language: "en"
+
+# Financial/business-only RSS feeds (used when --topic financial).
+# Same structure as rss_sources; region and language filtering apply.
+rss_sources_financial:
+
+  europe:
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+    - name: "Financial Times"
+      url: "https://www.ft.com/?format=rss"
+      language: "en"
+    - name: "Bloomberg"
+      url: "https://feeds.bloomberg.com/markets/news.rss"
+      language: "en"
+
+  finland:
+    - name: "Kauppalehti"
+      url: "https://www.kauppalehti.fi/rss/uutiset"
+      language: "fi"
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+
+  usa:
+    - name: "CNBC"
+      url: "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+      language: "en"
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+    - name: "Bloomberg"
+      url: "https://feeds.bloomberg.com/markets/news.rss"
+      language: "en"
+    - name: "MarketWatch"
+      url: "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+      language: "en"
+
+  china:
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+    - name: "South China Morning Post Business"
+      url: "https://www.scmp.com/rss/92/feed"
+      language: "en"
+
+  japan:
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+    - name: "Nikkei Asia"
+      url: "https://asia.nikkei.com/rss/feed/asia"
+      language: "en"
+
+  south_korea:
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+
+  india:
+    - name: "Reuters Business"
+      url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+      language: "en"
+    - name: "Moneycontrol"
+      url: "https://www.moneycontrol.com/rss/latest.xml"
+      language: "en"

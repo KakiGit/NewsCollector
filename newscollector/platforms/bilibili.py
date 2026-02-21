@@ -23,7 +23,11 @@ class BilibiliCollector(BaseCollector):
     def platform_name(self) -> str:
         return "bilibili"
 
-    async def collect(self, region: str | None = None) -> CollectionResult:
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         items: list[TrendingItem] = []
 
         async with create_client() as client:

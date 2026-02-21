@@ -26,16 +26,37 @@ REGION_ALIASES: dict[str, str] = {
     "korea": "south_korea",
     "in": "india",
     "vn": "vietnam",
+    "fi": "finland",
+}
+
+# Official language(s) per region (ISO 639-1). When region is set, only feeds
+# whose language matches one of these are used; feeds without language are excluded.
+REGION_LANGUAGES: dict[str, list[str]] = {
+    "europe": ["en", "fr", "de", "es", "it", "nl"],
+    "usa": ["en"],
+    "china": ["zh", "en"],
+    "japan": ["ja", "en"],
+    "south_korea": ["ko", "en"],
+    "india": ["en", "hi"],
+    "vietnam": ["vi", "en"],
+    "finland": ["fi", "en"],
 }
 
 
-def _load_sources() -> dict[str, list[dict[str, str]]]:
-    """Load RSS sources from sources.yaml."""
+def _load_sources(topic: str | None = None) -> dict[str, list[dict[str, Any]]]:
+    """Load RSS sources from sources.yaml.
+
+    When topic is 'financial' or 'business', loads rss_sources_financial if present;
+    otherwise loads rss_sources.
+    """
     if not SOURCES_FILE.exists():
         logger.warning("sources.yaml not found at %s", SOURCES_FILE)
         return {}
     with open(SOURCES_FILE, encoding="utf-8") as f:
         data = yaml.safe_load(f)
+    use_financial = (topic or "").strip().lower() in ("financial", "business")
+    if use_financial and data.get("rss_sources_financial"):
+        return data.get("rss_sources_financial", {})
     return data.get("rss_sources", {})
 
 
@@ -50,8 +71,12 @@ class NewsRSSCollector(BaseCollector):
     def platform_name(self) -> str:
         return "news_rss"
 
-    async def collect(self, region: str | None = None) -> CollectionResult:
-        sources = _load_sources()
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
+        sources = _load_sources(topic=topic)
         if not sources:
             return CollectionResult(
                 platform=self.platform_name,
@@ -62,7 +87,9 @@ class NewsRSSCollector(BaseCollector):
         # Filter by region if specified
         if region:
             norm = _normalize_region(region)
-            filtered = {k: v for k, v in sources.items() if _normalize_region(k) == norm}
+            filtered = {
+                k: v for k, v in sources.items() if _normalize_region(k) == norm
+            }
             if not filtered:
                 return CollectionResult(
                     platform=self.platform_name,
@@ -72,9 +99,21 @@ class NewsRSSCollector(BaseCollector):
                 )
             sources = filtered
 
+        # When region is set, use only feeds in the region's official language(s)
+        allowed_languages: list[str] | None = None
+        if region:
+            norm = _normalize_region(region)
+            allowed_languages = REGION_LANGUAGES.get(norm)
+            if allowed_languages:
+                allowed_languages = [lang.lower() for lang in allowed_languages]
+
         items: list[TrendingItem] = []
         for region_key, feeds in sources.items():
             for feed_info in feeds:
+                if allowed_languages is not None:
+                    feed_lang = (feed_info.get("language") or "").strip().lower()
+                    if not feed_lang or feed_lang not in allowed_languages:
+                        continue
                 feed_items = await self._parse_feed(feed_info, region_key)
                 items.extend(feed_items)
 
@@ -85,7 +124,7 @@ class NewsRSSCollector(BaseCollector):
         )
 
     async def _parse_feed(
-        self, feed_info: dict[str, str], region_key: str
+        self, feed_info: dict[str, Any], region_key: str
     ) -> list[TrendingItem]:
         """Parse a single RSS feed and return trending items."""
         name = feed_info.get("name", "Unknown")

@@ -19,3 +19,8 @@ output/
 # IDE
 .vscode/
 .idea/
+
+# Docker - rendered file contains secrets
+docker-compose.yml
+
+node_modules/

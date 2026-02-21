@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NewsCollector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    /* subtle card hover lift */
+    .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+    /* custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="h-full font-sans text-gray-800 antialiased" x-data="newsApp()" x-init="init()" @scroll.window.throttle.200ms="saveScrollPosition()" x-cloak>
+
+  <!-- ===== Top Navigation Bar ===== -->
+  <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+          </svg>
+        </div>
+        <h1 class="text-lg font-bold tracking-tight text-gray-900">NewsCollector</h1>
+      </div>
+      <!-- View toggle tabs -->
+      <div class="flex items-center gap-1 rounded-lg bg-gray-100 p-1">
+        <button @click="viewMode = 'news'; fetchItems()"
+                :class="viewMode === 'news' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+          </svg>
+          <span class="hidden sm:inline">News</span>
+        </button>
+        <button @click="viewMode = 'analysis'; fetchDailyAnalysis()"
+                :class="viewMode === 'analysis' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span class="hidden sm:inline">Daily Analysis</span>
+        </button>
+        <button @click="viewMode = 'financial'; fetchFinancialReports()"
+                :class="viewMode === 'financial' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="hidden sm:inline">Financial Reports</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 text-sm text-gray-500">
+        <template x-if="selectedDate">
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span x-text="selectedDate"></span>
+          </span>
+        </template>
+        <span class="hidden sm:inline" x-show="viewMode === 'news' && items.length > 0" x-text="newsPagination.total > 0 ? (newsPagination.offset + 1) + '-' + Math.min(newsPagination.offset + items.length, newsPagination.total) + ' of ' + newsPagination.total : items.length + ' items'"></span>
+        <span class="hidden sm:inline" x-show="viewMode === 'analysis' && analysisEntries.length > 0" x-text="analysisEntries.length + ' scopes'"></span>
+        <span class="hidden sm:inline" x-show="viewMode === 'financial' && financialReports.length > 0" x-text="finWithAI + '/' + (finPagination.total > 0 ? finPagination.total : financialReports.length) + ' analyzed · USD'"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+
+    <!-- ===== Daily Verdict (only in news mode) ===== -->
+    <div x-show="viewMode === 'news' && dailyVerdict" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Daily Verdict</span>
+      </div>
+      <!-- Score categories: Global (international) vs Domestic (internal) -->
+      <div class="mb-3 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+        <!-- Global/International Scores -->
+        <div class="col-span-2 sm:col-span-1">
+          <p class="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">Global / International</p>
+          <div class="flex flex-wrap gap-2">
+            <div class="inline-flex items-center gap-2 rounded-lg border px-3 py-2"
+                 :style="scoreColorStyle(dailyVerdict?.global_political_score)">
+              <span class="text-xs font-semibold uppercase tracking-wide">Political</span>
+              <span class="text-sm font-bold" x-text="formatScore(dailyVerdict?.global_political_score)"></span>
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-lg border px-3 py-2"
+                 :style="scoreColorStyle(dailyVerdict?.global_economic_score)">
+              <span class="text-xs font-semibold uppercase tracking-wide">Economy</span>
+              <span class="text-sm font-bold" x-text="formatScore(dailyVerdict?.global_economic_score)"></span>
+            </div>
+          </div>
+        </div>
+        <!-- Domestic/Internal Scores -->
+        <div class="col-span-2 sm:col-span-1 sm:ml-4">
+          <p class="mb-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">Domestic / Internal</p>
+          <div class="flex flex-wrap gap-2">
+            <div class="inline-flex items-center gap-2 rounded-lg border px-3 py-2"
+                 :style="scoreColorStyle(dailyVerdict?.domestic_political_score)">
+              <span class="text-xs font-semibold uppercase tracking-wide">Political</span>
+              <span class="text-sm font-bold" x-text="formatScore(dailyVerdict?.domestic_political_score)"></span>
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-lg border px-3 py-2"
+                 :style="scoreColorStyle(dailyVerdict?.domestic_economic_score)">
+              <span class="text-xs font-semibold uppercase tracking-wide">Economy</span>
+              <span class="text-sm font-bold" x-text="formatScore(dailyVerdict?.domestic_economic_score)"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-sm leading-relaxed text-gray-700" x-show="dailyVerdict" x-text="nk(dailyVerdict?.local_summary)"></p>
+      <p class="mt-2 text-xs text-gray-500" x-show="dailyVerdict && dailyVerdict.local_scope_key && dailyVerdict.local_scope_key !== 'all'" x-text="'Local scope: ' + dailyVerdict.local_scope_key"></p>
+    </div>
+
+    <!-- ===== Filter Bar (news mode) ===== -->
+    <div x-show="viewMode === 'news'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <!-- Platform -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Platform</label>
+          <select x-model="selectedPlatform" @change="fetchItems()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All platforms</option>
+            <template x-for="p in platforms" :key="p">
+              <option :value="p" x-text="formatPlatform(p)"></option>
+            </template>
+          </select>
+        </div>
+
+        <!-- Region -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Region</label>
+          <select x-model="selectedRegion" @change="fetchItems()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All regions</option>
+            <template x-for="r in regions" :key="r">
+              <option :value="r" x-text="formatRegion(r)"></option>
+            </template>
+          </select>
+        </div>
+
+        <!-- Date -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Date</label>
+          <select x-model="selectedDate" @change="fetchItems()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <template x-for="d in dates" :key="d">
+              <option :value="d" x-text="d"></option>
+            </template>
+          </select>
+        </div>
+
+        <!-- Label -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Label</label>
+          <select x-model="selectedLabel" @change="fetchItems()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All labels</option>
+            <template x-for="l in labels" :key="l">
+              <option :value="l" x-text="l"></option>
+            </template>
+          </select>
+        </div>
+
+        <!-- Search -->
+        <div class="lg:col-span-2">
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Search</label>
+          <div class="relative">
+            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" x-model.debounce.300ms="searchQuery" @input="fetchItems()"
+                   placeholder="Search titles, sources..."
+                   class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Date Filter (analysis mode) ===== -->
+    <div x-show="viewMode === 'analysis'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="flex flex-wrap items-center gap-4">
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Date</label>
+          <select x-model="selectedDate" @change="fetchDailyAnalysis()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <template x-for="d in dates" :key="d">
+              <option :value="d" x-text="d"></option>
+            </template>
+          </select>
+        </div>
+        <p class="text-sm text-gray-500">Viewing AI-generated analysis across all scopes for the selected date.</p>
+      </div>
+    </div>
+
+    <!-- ===== Loading Spinner ===== -->
+    <div x-show="loading" class="flex items-center justify-center py-20">
+      <svg class="h-8 w-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+
+    <!-- ===== Error State ===== -->
+    <div x-show="error && !loading" class="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+      <svg class="mx-auto mb-3 h-10 w-10 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+      </svg>
+      <p class="text-sm text-red-700" x-text="error"></p>
+    </div>
+
+    <!-- ===== Empty State (news mode) ===== -->
+    <div x-show="viewMode === 'news' && !loading && !error && items.length === 0" class="py-20 text-center">
+      <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-500">No items found</h3>
+      <p class="mt-1 text-sm text-gray-400">Try adjusting your filters or run a collection first.</p>
+    </div>
+
+    <!-- ===== Empty State (analysis mode) ===== -->
+    <div x-show="viewMode === 'analysis' && !loading && !error && analysisEntries.length === 0" class="py-20 text-center">
+      <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-500">No analysis found</h3>
+      <p class="mt-1 text-sm text-gray-400">Run a collection with AI analysis enabled to generate daily verdicts.</p>
+    </div>
+
+    <!-- ===== Item Cards Grid (news mode) ===== -->
+    <div x-show="viewMode === 'news' && !loading && !error && items.length > 0"
+         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <template x-for="(item, idx) in items" :key="idx">
+        <a :href="item.url || '#'" target="_blank" rel="noopener noreferrer"
+           class="card-hover group flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+           :class="{ 'cursor-default': !item.url }">
+
+          <!-- Top row: platform badge + rank -->
+          <div class="mb-3 flex items-center justify-between">
+            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold"
+                  :class="platformColor(item.platform)"
+                  x-text="formatPlatform(item.platform)">
+            </span>
+            <div class="flex items-center gap-2">
+              <template x-if="item.heat">
+                <span class="inline-flex items-center gap-1 text-xs text-orange-600" :title="'Heat: ' + item.heat">
+                  <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/></svg>
+                  <span x-text="formatHeat(item.heat)"></span>
+                </span>
+              </template>
+              <template x-if="item.rank">
+                <span class="inline-flex h-5 min-w-[20px] items-center justify-center rounded bg-gray-100 px-1 text-xs font-bold text-gray-500"
+                      x-text="'#' + item.rank"></span>
+              </template>
+            </div>
+          </div>
+
+          <!-- Title -->
+          <h3 class="mb-1.5 text-sm font-semibold leading-snug text-gray-900 group-hover:text-indigo-600 line-clamp-2"
+              x-text="nk(item.title)"></h3>
+
+          <!-- Summary (AI-generated when available) -->
+          <template x-if="item.summary">
+            <p class="mb-2 text-xs leading-relaxed text-gray-600 line-clamp-3" x-text="nk(item.summary)"></p>
+          </template>
+
+          <!-- Description (from source) -->
+          <template x-if="item.description">
+            <p class="mb-3 text-xs leading-relaxed text-gray-500 line-clamp-3" x-text="nk(item.description)"></p>
+          </template>
+
+          <!-- Labels -->
+          <template x-if="item.labels && item.labels.length">
+            <div class="mb-3 flex flex-wrap gap-1">
+              <template x-for="label in item.labels" :key="label">
+                <span class="inline-flex rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600"
+                      x-text="label"></span>
+              </template>
+            </div>
+          </template>
+
+          <!-- Footer: source + region -->
+          <div class="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
+            <span class="text-xs font-medium text-gray-600" x-text="nk(item.source)"></span>
+            <template x-if="item.region">
+              <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500"
+                    x-text="item.region"></span>
+            </template>
+          </div>
+
+          <!-- External link indicator -->
+          <template x-if="item.url">
+            <div class="mt-2 flex items-center gap-1 text-[11px] text-gray-400 group-hover:text-indigo-500">
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+              <span>Open article</span>
+            </div>
+          </template>
+        </a>
+      </template>
+    </div>
+
+
+    <!-- ===== Analysis Cards Grid (analysis mode) ===== -->
+    <div x-show="viewMode === 'analysis' && !loading && !error && analysisEntries.length > 0"
+         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <template x-for="(entry, idx) in analysisEntries" :key="idx">
+        <div @click="navigateToNewsWithScope(entry.scope_key)"
+             class="group card-hover flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm cursor-pointer hover:border-indigo-300 hover:ring-2 hover:ring-indigo-100 transition-all">
+
+          <!-- Scope header -->
+          <div class="mb-4 flex items-center justify-between">
+            <span class="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-800"
+                  x-text="formatScopeKey(entry.scope_key)">
+            </span>
+            <template x-if="entry.item_count">
+              <span class="text-xs text-gray-500" x-text="entry.item_count + ' items analyzed'"></span>
+            </template>
+          </div>
+
+          <!-- Score grid: Global vs Domestic -->
+          <div class="mb-4 grid grid-cols-2 gap-3">
+            <!-- Global/International Scores -->
+            <div>
+              <p class="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-gray-400">Global</p>
+              <div class="flex flex-col gap-1.5">
+                <div class="inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5"
+                     :style="scoreColorStyle(entry.political_score)">
+                  <span class="text-[10px] font-semibold uppercase tracking-wide">Political</span>
+                  <span class="text-xs font-bold" x-text="formatScore(entry.political_score)"></span>
+                </div>
+                <div class="inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5"
+                     :style="scoreColorStyle(entry.economic_score)">
+                  <span class="text-[10px] font-semibold uppercase tracking-wide">Economy</span>
+                  <span class="text-xs font-bold" x-text="formatScore(entry.economic_score)"></span>
+                </div>
+              </div>
+            </div>
+            <!-- Domestic/Internal Scores -->
+            <div>
+              <p class="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-gray-400">Domestic</p>
+              <div class="flex flex-col gap-1.5">
+                <div class="inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5"
+                     :style="scoreColorStyle(entry.domestic_political_score)">
+                  <span class="text-[10px] font-semibold uppercase tracking-wide">Political</span>
+                  <span class="text-xs font-bold" x-text="formatScore(entry.domestic_political_score)"></span>
+                </div>
+                <div class="inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5"
+                     :style="scoreColorStyle(entry.domestic_economic_score)">
+                  <span class="text-[10px] font-semibold uppercase tracking-wide">Economy</span>
+                  <span class="text-xs font-bold" x-text="formatScore(entry.domestic_economic_score)"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <p class="text-xs leading-relaxed text-gray-600" x-text="nk(entry.summary)"></p>
+
+          <!-- Click hint -->
+          <div class="mt-auto pt-3 border-t border-gray-100 flex items-center gap-1 text-[11px] text-gray-400 group-hover:text-indigo-500">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+            <span>View news items</span>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- ===== Financial Reports Filter Bar ===== -->
+    <div x-show="viewMode === 'financial'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <!-- Region -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Region / List</label>
+          <select x-model="finSelectedRegion" @change="fetchFinancialReports()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All regions</option>
+            <template x-for="r in finRegions" :key="r">
+              <option :value="r" x-text="formatFinRegion(r)"></option>
+            </template>
+          </select>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
+          <select x-model="finStatusFilter" @change="fetchFinancialReports()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All</option>
+            <option value="complete">Analyzed</option>
+            <option value="pending_ai">Pending AI</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Sort by</label>
+          <select x-model="finSortBy" @change="sortFinancialReports()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="health_desc">Health (high to low)</option>
+            <option value="health_asc">Health (low to high)</option>
+            <option value="potential_desc">Potential (high to low)</option>
+            <option value="potential_asc">Potential (low to high)</option>
+            <option value="name_asc">Company name (A-Z)</option>
+            <option value="market_cap_desc">Market cap (high to low)</option>
+          </select>
+        </div>
+
+        <!-- Search -->
+        <div class="lg:col-span-2">
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Search</label>
+          <div class="relative">
+            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" x-model.debounce.300ms="finSearchQuery" @input="fetchFinancialReports()"
+                   placeholder="Search by company name, ticker, sector..."
+                   class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Financial View Toggle (cards vs charts) ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0" class="mb-6">
+      <!-- Summary Stats Bar -->
+      <div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div class="rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm">
+          <p class="text-2xl font-bold text-gray-900" x-text="financialReports.length"></p>
+          <p class="text-xs text-gray-500">Companies</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm">
+          <p class="text-2xl font-bold text-emerald-600" x-text="finAvgHealth"></p>
+          <p class="text-xs text-gray-500">Avg Health</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm">
+          <p class="text-2xl font-bold text-indigo-600" x-text="finAvgPotential"></p>
+          <p class="text-xs text-gray-500">Avg Potential</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm">
+          <p class="text-2xl font-bold text-gray-900" x-text="finSectorCount"></p>
+          <p class="text-xs text-gray-500">Sectors</p>
+        </div>
+      </div>
+
+      <!-- Sub-view toggle -->
+      <div class="flex items-center gap-1 rounded-lg bg-gray-100 p-1 w-fit">
+        <button @click="finViewMode = 'cards'"
+                :class="finViewMode === 'cards' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors">Cards</button>
+        <button @click="finViewMode = 'scatter'; $nextTick(() => renderScatterChart())"
+                :class="finViewMode === 'scatter' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors">Scatter Plot</button>
+        <button @click="finViewMode = 'sectors'; $nextTick(() => renderSectorChart())"
+                :class="finViewMode === 'sectors' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors">By Sector</button>
+        <button @click="finViewMode = 'history'; fetchFinancialHistory()"
+                :class="finViewMode === 'history' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors">History</button>
+        <button @click="finViewMode = 'table'"
+                :class="finViewMode === 'table' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors">Table</button>
+      </div>
+    </div>
+
+    <!-- ===== Scatter Plot (Health vs Potential) ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'scatter'"
+         class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <h3 class="mb-3 text-sm font-semibold text-gray-700">Health Score vs Potential Score</h3>
+      <div class="relative" style="height: 480px;">
+        <canvas id="scatterChart"></canvas>
+      </div>
+      <p class="mt-2 text-[11px] text-gray-400">Click a point to view company details. Top-right quadrant = strong health + high potential.</p>
+    </div>
+
+    <!-- ===== Sector Breakdown Chart ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'sectors'"
+         class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <h3 class="mb-3 text-sm font-semibold text-gray-700">Average Scores by Sector</h3>
+      <div class="relative" style="height: 400px;">
+        <canvas id="sectorChart"></canvas>
+      </div>
+    </div>
+
+    <!-- ===== Historical Trends View ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && finViewMode === 'history'"
+         class="mb-6">
+
+      <!-- Ticker selector for history -->
+      <div class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Company</label>
+            <select x-model="histTicker" @change="fetchFinancialHistory()"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="">Select a company...</option>
+              <template x-for="r in financialReports.filter(r => r.health_score != null)" :key="r.ticker">
+                <option :value="r.ticker" x-text="r.ticker + ' - ' + r.company_name"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Metric</label>
+            <select x-model="histMetric" @change="renderHistoryChart()"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="revenue">Revenue</option>
+              <option value="net_income">Net Income</option>
+              <option value="gross_profit">Gross Profit</option>
+              <option value="ebitda">EBITDA</option>
+              <option value="operating_income">Operating Income</option>
+              <option value="free_cash_flow">Free Cash Flow</option>
+              <option value="total_assets">Total Assets</option>
+              <option value="total_equity">Total Equity</option>
+              <option value="total_debt">Total Debt</option>
+              <option value="market_cap">Market Cap</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Periods</label>
+            <select x-model="histPeriods" @change="fetchFinancialHistory()"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="4">Last 4 quarters</option>
+              <option value="8">Last 8 quarters</option>
+              <option value="12">Last 12 quarters</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- No ticker selected -->
+      <div x-show="!histTicker" class="py-12 text-center">
+        <svg class="mx-auto mb-3 h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+        </svg>
+        <p class="text-sm text-gray-500">Select a company above to view quarterly trends.</p>
+      </div>
+
+      <!-- History chart -->
+      <div x-show="histTicker && histData.length > 0" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-gray-700" x-text="histTicker + ' — ' + histMetricLabel()"></h3>
+          <span class="text-xs text-gray-400" x-text="histData.length + ' quarters'"></span>
+        </div>
+        <div class="relative" style="height: 360px;">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </div>
+
+      <!-- No data for selected ticker -->
+      <div x-show="histTicker && histData.length === 0 && !loading" class="py-12 text-center">
+        <p class="text-sm text-gray-500">No historical data available for this company. Run <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">collect-history</code> to fetch historical data.</p>
+      </div>
+
+      <!-- Multi-company comparison -->
+      <div x-show="histTicker && histData.length > 0" class="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 class="mb-3 text-sm font-semibold text-gray-700">Quarter-over-Quarter Changes</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="py-2 pr-4 text-left font-medium text-gray-500">Period</th>
+                <th class="py-2 pr-4 text-right font-medium text-gray-500" x-text="histMetricLabel()"></th>
+                <th class="py-2 text-right font-medium text-gray-500">QoQ Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row, i) in histTableRows" :key="i">
+                <tr class="border-b border-gray-50">
+                  <td class="py-1.5 pr-4 font-medium text-gray-700" x-text="row.period"></td>
+                  <td class="py-1.5 pr-4 text-right text-gray-700" x-text="formatFinNum(row.value)"></td>
+                  <td class="py-1.5 text-right font-medium" :class="row.change >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                      x-text="row.changeStr"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Company Detail Modal ===== -->
+    <div x-show="finDetailReport" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+         @click.self="finDetailReport = null" @keydown.escape.window="finDetailReport = null">
+      <div class="relative mx-4 w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl" x-show="finDetailReport" x-transition>
+        <!-- Close button -->
+        <button @click="finDetailReport = null" class="absolute right-3 top-3 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+
+        <template x-if="finDetailReport">
+          <div>
+            <!-- Header -->
+            <div class="mb-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800"
+                      x-text="finDetailReport.ticker"></span>
+                <span class="text-[10px] text-gray-500" x-text="finDetailReport.sector"></span>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900" x-text="finDetailReport.company_name"></h3>
+              <p class="text-xs text-gray-500" x-text="finDetailReport.industry"></p>
+            </div>
+
+            <!-- Scores row -->
+            <div class="mb-4 flex gap-3">
+              <div class="flex-1 rounded-lg border px-3 py-2" :style="scoreColorStyle(finDetailReport.health_score)">
+                <p class="text-[10px] font-semibold uppercase tracking-wide">Health</p>
+                <p class="text-xl font-bold" x-text="formatScore(finDetailReport.health_score)"></p>
+              </div>
+              <div class="flex-1 rounded-lg border px-3 py-2" :style="scoreColorStyle(finDetailReport.potential_score)">
+                <p class="text-[10px] font-semibold uppercase tracking-wide">Potential</p>
+                <p class="text-xl font-bold" x-text="formatScore(finDetailReport.potential_score)"></p>
+              </div>
+            </div>
+
+            <!-- Radar chart -->
+            <div class="mb-4" style="height: 240px;">
+              <canvas id="radarChart"></canvas>
+            </div>
+
+            <!-- AI Summary -->
+            <template x-if="finDetailReport.summary">
+              <div class="mb-4">
+                <p class="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">AI Analysis</p>
+                <p class="text-xs leading-relaxed text-gray-700" x-text="finDetailReport.summary"></p>
+              </div>
+            </template>
+
+            <!-- Key metrics grid -->
+            <div class="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+              <template x-if="finDetailReport.revenue != null">
+                <div class="flex justify-between"><span class="text-gray-500">Revenue</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.revenue)"></span></div>
+              </template>
+              <template x-if="finDetailReport.net_income != null">
+                <div class="flex justify-between"><span class="text-gray-500">Net Income</span><span class="font-medium" :class="positiveNegativeColor(finDetailReport.net_income)" x-text="formatFinNum(finDetailReport.net_income)"></span></div>
+              </template>
+              <template x-if="finDetailReport.gross_profit != null">
+                <div class="flex justify-between"><span class="text-gray-500">Gross Profit</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.gross_profit)"></span></div>
+              </template>
+              <template x-if="finDetailReport.ebitda != null">
+                <div class="flex justify-between"><span class="text-gray-500">EBITDA</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.ebitda)"></span></div>
+              </template>
+              <template x-if="finDetailReport.market_cap != null">
+                <div class="flex justify-between"><span class="text-gray-500">Market Cap</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.market_cap)"></span></div>
+              </template>
+              <template x-if="finDetailReport.total_assets != null">
+                <div class="flex justify-between"><span class="text-gray-500">Total Assets</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.total_assets)"></span></div>
+              </template>
+              <template x-if="finDetailReport.total_debt != null">
+                <div class="flex justify-between"><span class="text-gray-500">Total Debt</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.total_debt)"></span></div>
+              </template>
+              <template x-if="finDetailReport.cash != null">
+                <div class="flex justify-between"><span class="text-gray-500">Cash</span><span class="font-medium text-gray-700" x-text="formatFinNum(finDetailReport.cash)"></span></div>
+              </template>
+              <template x-if="finDetailReport.free_cash_flow != null">
+                <div class="flex justify-between"><span class="text-gray-500">Free Cash Flow</span><span class="font-medium" :class="positiveNegativeColor(finDetailReport.free_cash_flow)" x-text="formatFinNum(finDetailReport.free_cash_flow)"></span></div>
+              </template>
+              <template x-if="finDetailReport.pe_ratio != null">
+                <div class="flex justify-between"><span class="text-gray-500">P/E Ratio</span><span class="font-medium" :class="peRatioColor(finDetailReport.pe_ratio)" x-text="Number.isFinite(finDetailReport.pe_ratio) ? Number(finDetailReport.pe_ratio).toFixed(1) : 'N/A'"></span></div>
+              </template>
+              <template x-if="finDetailReport.revenue_growth != null">
+                <div class="flex justify-between"><span class="text-gray-500">Rev Growth</span><span class="font-medium" :class="revenueGrowthColor(finDetailReport.revenue_growth)" x-text="Number.isFinite(finDetailReport.revenue_growth) ? (finDetailReport.revenue_growth * 100).toFixed(1) + '%' : 'N/A'"></span></div>
+              </template>
+              <template x-if="finDetailReport.profit_margin != null">
+                <div class="flex justify-between"><span class="text-gray-500">Profit Margin</span><span class="font-medium" :class="profitMarginColor(finDetailReport.profit_margin)" x-text="Number.isFinite(finDetailReport.profit_margin) ? (finDetailReport.profit_margin * 100).toFixed(1) + '%' : 'N/A'"></span></div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ===== Empty State (financial mode) ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length === 0" class="py-20 text-center">
+      <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-500">No financial reports found</h3>
+      <p class="mt-1 text-sm text-gray-400">Run <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">collect-reports</code> to fetch financial data for top companies.</p>
+    </div>
+
+    <!-- ===== Financial Report Cards Grid ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'cards'"
+         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <template x-for="(report, idx) in financialReports" :key="report.ticker || idx">
+        <div @click="openFinDetail(report)" class="card-hover cursor-pointer flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-indigo-300 hover:ring-2 hover:ring-indigo-100 transition-all">
+
+          <!-- Top row: ticker badge + period -->
+          <div class="mb-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800"
+                    x-text="nk(report.ticker)"></span>
+              <template x-if="report.sector">
+                <span class="text-[10px] text-gray-500" x-text="report.sector"></span>
+              </template>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <template x-if="report.original_currency">
+                <span class="rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-medium text-amber-700"
+                      x-text="report.original_currency + ' → USD'"></span>
+              </template>
+              <template x-if="report.report_period">
+                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500"
+                      x-text="report.report_period"></span>
+              </template>
+            </div>
+          </div>
+
+          <!-- Company name -->
+          <h3 class="mb-2 text-sm font-semibold leading-snug text-gray-900 line-clamp-2"
+              x-text="nk(report.company_name)"></h3>
+
+          <!-- Status badge for reports missing AI -->
+          <template x-if="report.data_status === 'pending_ai'">
+            <div class="mb-2 flex items-center gap-1.5">
+              <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Pending AI analysis
+              </span>
+            </div>
+          </template>
+
+          <!-- Health & Potential scores -->
+          <div class="mb-3 flex flex-wrap gap-2">
+            <div class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 flex-1 min-w-[120px]"
+                 :style="scoreColorStyle(report.health_score)">
+              <div class="flex flex-col">
+                <span class="text-[10px] font-semibold uppercase tracking-wide">Health</span>
+                <span class="text-lg font-bold leading-tight" x-text="formatScore(report.health_score)"></span>
+              </div>
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 flex-1 min-w-[120px]"
+                 :style="scoreColorStyle(report.potential_score)">
+              <div class="flex flex-col">
+                <span class="text-[10px] font-semibold uppercase tracking-wide">Potential</span>
+                <span class="text-lg font-bold leading-tight" x-text="formatScore(report.potential_score)"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Summary -->
+          <p class="mb-3 text-xs leading-relaxed text-gray-600 line-clamp-4" x-text="nk(report.summary)"></p>
+
+          <!-- Key financial metrics -->
+          <div class="mb-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+            <template x-if="report.revenue != null">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Revenue</span>
+                <span class="font-medium text-gray-700" x-text="formatFinNum(report.revenue)"></span>
+              </div>
+            </template>
+            <template x-if="report.net_income != null">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Net Income</span>
+                <span class="font-medium" :class="positiveNegativeColor(report.net_income)"
+                      x-text="formatFinNum(report.net_income)"></span>
+              </div>
+            </template>
+            <template x-if="report.market_cap != null">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Market Cap</span>
+                <span class="font-medium text-gray-700" x-text="formatFinNum(report.market_cap)"></span>
+              </div>
+            </template>
+            <template x-if="report.pe_ratio != null">
+              <div class="flex justify-between">
+                <span class="text-gray-500">P/E Ratio</span>
+                <span class="font-medium" :class="peRatioColor(report.pe_ratio)"
+                      x-text="Number.isFinite(report.pe_ratio) ? Number(report.pe_ratio).toFixed(1) : 'Unknown'"></span>
+              </div>
+            </template>
+            <template x-if="report.revenue_growth != null">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Rev Growth</span>
+                <span class="font-medium" :class="revenueGrowthColor(report.revenue_growth)"
+                      x-text="Number.isFinite(report.revenue_growth) ? (report.revenue_growth * 100).toFixed(1) + '%' : 'Unknown'"></span>
+              </div>
+            </template>
+            <template x-if="report.profit_margin != null">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Profit Margin</span>
+                <span class="font-medium" :class="profitMarginColor(report.profit_margin)"
+                      x-text="Number.isFinite(report.profit_margin) ? (report.profit_margin * 100).toFixed(1) + '%' : 'Unknown'"></span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Region badges + industry -->
+          <div class="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
+            <div class="flex flex-wrap gap-1">
+              <template x-for="reg in (report.regions || [])" :key="reg">
+                <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700"
+                      x-text="formatFinRegion(reg)"></span>
+              </template>
+            </div>
+            <template x-if="report.industry">
+              <span class="text-[10px] text-gray-400 max-w-[120px] truncate" :title="report.industry"
+                    x-text="report.industry"></span>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- ===== Financial Reports Table View ===== -->
+    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'table'"
+         class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Ticker</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Company</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Sector</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Industry</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Health</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Potential</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Revenue</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Market Cap</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Profit Margin</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Rev Growth</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          <template x-for="report in financialReports" :key="report.ticker">
+            <tr @click="openFinDetail(report)" class="hover:bg-gray-50 cursor-pointer">
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800"
+                      x-text="report.ticker"></span>
+              </td>
+              <td class="px-4 py-3 text-sm font-medium text-gray-900" x-text="report.company_name"></td>
+              <td class="px-4 py-3 text-sm text-gray-500" x-text="report.sector"></td>
+              <td class="px-4 py-3 text-sm text-gray-500" x-text="report.industry"></td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-bold"
+                      :style="scoreColorStyle(report.health_score)" x-text="formatScore(report.health_score)"></span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-bold"
+                      :style="scoreColorStyle(report.potential_score)" x-text="formatScore(report.potential_score)"></span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500" x-text="formatFinNum(report.revenue)"></td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500" x-text="formatFinNum(report.market_cap)"></td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="text-sm font-medium" :class="profitMarginColor(report.profit_margin)"
+                      x-text="Number.isFinite(report.profit_margin) ? (report.profit_margin * 100).toFixed(1) + '%' : 'N/A'"></span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="text-sm font-medium" :class="revenueGrowthColor(report.revenue_growth)"
+                      x-text="Number.isFinite(report.revenue_growth) ? (report.revenue_growth * 100).toFixed(1) + '%' : 'N/A'"></span>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+
+
+
+          <!-- Industry filter -->
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Industry</label>
+            <select x-model="scoresSelectedIndustry" @change="fetchCompanyScores()"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="">All industries</option>
+              <template x-for="industry in scoresFilters.industries" :key="industry">
+                <option :value="industry" x-text="industry"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Health score range -->
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Health Score</label>
+            <div class="flex items-center gap-2">
+              <input type="number" min="0" max="100" x-model="scoresMinHealth" @change="fetchCompanyScores()" placeholder="Min"
+                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <input type="number" min="0" max="100" x-model="scoresMaxHealth" @change="fetchCompanyScores()" placeholder="Max"
+                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- Potential score range -->
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Potential Score</label>
+            <div class="flex items-center gap-2">
+              <input type="number" min="0" max="100" x-model="scoresMinPotential" @change="fetchCompanyScores()" placeholder="Min"
+                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <input type="number" min="0" max="100" x-model="scoresMaxPotential" @change="fetchCompanyScores()" placeholder="Max"
+                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- Sort -->
+          <div>
+            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Sort By</label>
+            <select x-model="scoresSortBy" @change="fetchCompanyScores()"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="health_score">Health Score (High)</option>
+              <option value="potential_score">Potential Score (High)</option>
+              <option value="revenue">Revenue (High)</option>
+              <option value="market_cap">Market Cap (High)</option>
+              <option value="ticker">Ticker (A-Z)</option>
+              <option value="company_name">Company Name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Column visibility toggles -->
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Show Columns:</span>
+          <template x-for="col in scoresVisibleColumnsList" :key="col.key">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" x-model="scoresVisibleColumns[col.key]"
+                     class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+              <span class="text-sm text-gray-700" x-text="col.label"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- ===== Company Scores Summary ===== -->
+      <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total Companies</p>
+          <p class="mt-1 text-2xl font-bold text-gray-900" x-text="companyScoresData.count || 0"></p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Avg Health Score</p>
+          <p class="mt-1 text-2xl font-bold" :style="scoreColorStyle(companyScoresData.avg_health_score)"
+             x-text="formatScore(companyScoresData.avg_health_score)"></p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Avg Potential Score</p>
+          <p class="mt-1 text-2xl font-bold" :style="scoreColorStyle(companyScoresData.avg_potential_score)"
+             x-text="formatScore(companyScoresData.avg_potential_score)"></p>
+        </div>
+      </div>
+
+      <!-- ===== Company Scores View Mode Toggle ===== -->
+      <div class="mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-1 rounded-lg bg-gray-100 p-1 w-fit">
+          <button @click="scoresViewMode = 'table'"
+                  :class="scoresViewMode === 'table' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                  class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            Table
+          </button>
+          <button @click="scoresViewMode = 'scatter'; $nextTick(() => renderScoresScatterChart())"
+                  :class="scoresViewMode === 'scatter' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                  class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+            </svg>
+            Scatter Plot
+          </button>
+          <button @click="scoresViewMode = 'bars'; $nextTick(() => renderScoresBarChart())"
+                  :class="scoresViewMode === 'bars' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                  class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Sector Bars
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== Company Scores Empty State ===== -->
+      <div x-show="!loading && !error && (!companyScoresData.companies || companyScoresData.companies.length === 0)" class="py-20 text-center">
+        <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <h3 class="text-lg font-semibold text-gray-500">No company scores found</h3>
+        <p class="mt-1 text-sm text-gray-400">Run <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">collect-reports</code> and <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">evaluate-reports</code> to generate scores.</p>
+      </div>
+
+      <!-- ===== Company Scores Table ===== -->
+      <div x-show="scoresViewMode === 'table' && !loading && !error && companyScoresData.companies?.length > 0"
+           class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <template x-for="col in scoresVisibleColumnsList" :key="col.key">
+                <th x-show="scoresVisibleColumns[col.key]"
+                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                    x-text="col.label"></th>
+              </template>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <template x-for="company in companyScoresData.companies" :key="company.ticker">
+              <tr class="hover:bg-gray-50">
+                <td x-show="scoresVisibleColumns.ticker" class="whitespace-nowrap px-4 py-3">
+                  <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800"
+                        x-text="company.ticker"></span>
+                </td>
+                <td x-show="scoresVisibleColumns.company_name" class="px-4 py-3 text-sm font-medium text-gray-900" x-text="company.company_name"></td>
+                <td x-show="scoresVisibleColumns.sector" class="px-4 py-3 text-sm text-gray-500" x-text="company.sector"></td>
+                <td x-show="scoresVisibleColumns.industry" class="px-4 py-3 text-sm text-gray-500" x-text="company.industry"></td>
+                <td x-show="scoresVisibleColumns.health_score" class="whitespace-nowrap px-4 py-3">
+                  <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-bold"
+                        :style="scoreColorStyle(company.health_score)" x-text="formatScore(company.health_score)"></span>
+                </td>
+                <td x-show="scoresVisibleColumns.potential_score" class="whitespace-nowrap px-4 py-3">
+                  <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-bold"
+                        :style="scoreColorStyle(company.potential_score)" x-text="formatScore(company.potential_score)"></span>
+                </td>
+                <td x-show="scoresVisibleColumns.revenue" class="whitespace-nowrap px-4 py-3 text-sm text-gray-600"
+                    x-text="formatCurrency(company.revenue)"></td>
+                <td x-show="scoresVisibleColumns.market_cap" class="whitespace-nowrap px-4 py-3 text-sm text-gray-600"
+                    x-text="formatCurrency(company.market_cap)"></td>
+                <td x-show="scoresVisibleColumns.profit_margin" class="whitespace-nowrap px-4 py-3 text-sm"
+                    :class="(company.profit_margin || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                    x-text="company.profit_margin != null ? (company.profit_margin * 100).toFixed(1) + '%' : '-'"></td>
+                <td x-show="scoresVisibleColumns.revenue_growth" class="whitespace-nowrap px-4 py-3 text-sm"
+                    :class="(company.revenue_growth || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                    x-text="company.revenue_growth != null ? (company.revenue_growth * 100).toFixed(1) + '%' : '-'"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== Company Scores Scatter Plot ===== -->
+      <div x-show="scoresViewMode === 'scatter' && !loading && !error && companyScoresData.companies?.length > 0"
+           class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h3 class="mb-4 text-sm font-semibold text-gray-700">Health vs Potential Score</h3>
+        <div class="relative h-80 w-full">
+          <canvas id="scoresScatterChart"></canvas>
+        </div>
+      </div>
+
+      <!-- ===== Company Scores Bar Chart ===== -->
+      <div x-show="scoresViewMode === 'bars' && !loading && !error && companyScoresData.companies?.length > 0"
+           class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h3 class="mb-4 text-sm font-semibold text-gray-700">Average Scores by Sector</h3>
+        <div class="relative h-80 w-full">
+          <canvas id="scoresBarChart"></canvas>
+        </div>
+      </div>
+
+
+    </div>
+
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="mt-12 border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-400">
+    NewsCollector &mdash; Trending news from multiple platforms
+  </footer>
+
+  <script>
+    const SCROLL_STORAGE_KEY = 'newscollector_scroll_y';
+    const UI_STATE_STORAGE_KEY = 'newscollector_ui_state';
+
+    function newsApp() {
+      return {
+        // State
+        platforms: [],
+        regions: [],
+        dates: [],
+        labels: [],
+        items: [],
+        analysisEntries: [],
+        selectedPlatform: '',
+        selectedRegion: '',
+        selectedDate: '',
+        selectedLabel: '',
+        searchQuery: '',
+        dailyVerdict: null,
+        viewMode: 'news', // 'news', 'analysis', or 'financial'
+        loading: true,
+        error: null,
+        hasRestoredScroll: false,
+        // Pagination state - News items
+        newsPagination: {
+          total: 0,
+        },
+        // Financial reports state
+        financialReports: [],
+        finRegions: [],
+        finSelectedRegion: '',
+        finSearchQuery: '',
+        finSortBy: 'health_desc',
+        finStatusFilter: '',
+        finWithAI: 0,
+        finViewMode: 'cards', // 'cards', 'scatter', 'sectors', 'history', 'table'
+        finDetailReport: null,
+        finAvgHealth: '--',
+        finAvgPotential: '--',
+        finSectorCount: 0,
+        // Pagination state - Financial reports
+        finPagination: {
+          total: 0,
+        },
+        _scatterChart: null,
+        _sectorChart: null,
+        _radarChart: null,
+        _historyChart: null,
+        // History view state
+        histTicker: '',
+        histMetric: 'revenue',
+        histPeriods: '8',
+        histData: [],
+        histTableRows: [],
+        // Company Scores view state
+        companyScoresData: { count: 0, avg_health_score: 0, avg_potential_score: 0, companies: [] },
+        // Pagination state - Company scores
+        scoresPagination: {
+          total: 0,
+        },
+        scoresFilters: { sectors: [], industries: [] },
+        scoresSelectedSector: '',
+        scoresSelectedIndustry: '',
+        scoresMinHealth: '',
+        scoresMaxHealth: '',
+        scoresMinPotential: '',
+        scoresMaxPotential: '',
+        scoresSortBy: 'health_score',
+        scoresViewMode: 'table', // 'table', 'scatter', 'bars'
+        scoresVisibleColumns: {
+          ticker: true,
+          company_name: true,
+          sector: true,
+          industry: true,
+          health_score: true,
+          potential_score: true,
+          revenue: true,
+          market_cap: true,
+          profit_margin: true,
+          revenue_growth: true,
+        },
+        _scoresScatterChart: null,
+        _scoresBarChart: null,
+
+        // Platform display colors
+        _colors: {
+          news_rss:   'bg-blue-100 text-blue-800',
+          news_api:   'bg-sky-100 text-sky-800',
+          twitter:    'bg-gray-800 text-white',
+          instagram:  'bg-pink-100 text-pink-800',
+          rednote:    'bg-red-100 text-red-800',
+          tiktok:     'bg-violet-100 text-violet-800',
+          weibo:      'bg-orange-100 text-orange-800',
+          youtube:    'bg-red-100 text-red-700',
+          bilibili:   'bg-cyan-100 text-cyan-800',
+          douyin:     'bg-teal-100 text-teal-800',
+        },
+
+        async init() {
+          try {
+            const [platforms, dates, regions, labels] = await Promise.all([
+              this.api('/api/platforms'),
+              this.api('/api/dates'),
+              this.api('/api/regions'),
+              this.api('/api/labels'),
+            ]);
+            this.platforms = platforms;
+            this.dates = dates;
+            this.regions = regions;
+            this.labels = labels;
+            if (dates.length > 0) {
+              this.selectedDate = dates[0];
+            }
+            // Restore saved UI state (filters, tab) before fetching
+            this.restoreUiState();
+            // Fetch based on restored view mode
+            if (this.viewMode === 'financial') {
+              await this.fetchFinancialReports();
+            } else if (this.viewMode === 'analysis') {
+              await this.fetchDailyAnalysis();
+            } else {
+              await this.fetchItems();
+            }
+            this.setupScrollPersistence();
+            this.restoreScrollPosition();
+          } catch (e) {
+            this.error = 'Failed to load data. Is the collector output directory populated?';
+            this.loading = false;
+          }
+        },
+
+        setupScrollPersistence() {
+          window.addEventListener('beforeunload', () => this.saveScrollPosition());
+        },
+
+        saveScrollPosition() {
+          try {
+            localStorage.setItem(SCROLL_STORAGE_KEY, String(window.scrollY || 0));
+          } catch (_) {}
+        },
+
+        restoreScrollPosition() {
+          if (this.hasRestoredScroll) return;
+          this.hasRestoredScroll = true;
+          try {
+            const raw = localStorage.getItem(SCROLL_STORAGE_KEY);
+            const y = Number(raw);
+            if (Number.isFinite(y) && y > 0) {
+              this.$nextTick(() => {
+                requestAnimationFrame(() => {
+                  window.scrollTo({ top: y, behavior: 'auto' });
+                });
+              });
+            }
+          } catch (_) {}
+        },
+
+        saveUiState() {
+          try {
+            const state = {
+              viewMode: this.viewMode,
+              selectedPlatform: this.selectedPlatform,
+              selectedRegion: this.selectedRegion,
+              selectedLabel: this.selectedLabel,
+              searchQuery: this.searchQuery,
+              finSelectedRegion: this.finSelectedRegion,
+              finSortBy: this.finSortBy,
+              finStatusFilter: this.finStatusFilter,
+              finViewMode: this.finViewMode,
+            };
+            localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify(state));
+          } catch (_) {}
+        },
+
+        restoreUiState() {
+          try {
+            const raw = localStorage.getItem(UI_STATE_STORAGE_KEY);
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            if (state.viewMode === 'news' || state.viewMode === 'analysis' || state.viewMode === 'financial') {
+              this.viewMode = state.viewMode;
+            }
+            if (typeof state.selectedPlatform === 'string') {
+              // Validate platform exists in available platforms
+              if (state.selectedPlatform === '' || this.platforms.includes(state.selectedPlatform)) {
+                this.selectedPlatform = state.selectedPlatform;
+              }
+            }
+            if (typeof state.selectedRegion === 'string') {
+              // Validate region exists in available regions
+              if (state.selectedRegion === '' || this.regions.includes(state.selectedRegion)) {
+                this.selectedRegion = state.selectedRegion;
+              }
+            }
+            if (typeof state.selectedLabel === 'string') {
+              // Validate label exists in available labels
+              if (state.selectedLabel === '' || this.labels.includes(state.selectedLabel)) {
+                this.selectedLabel = state.selectedLabel;
+              }
+            }
+            if (typeof state.searchQuery === 'string') {
+              this.searchQuery = state.searchQuery;
+            }
+            if (typeof state.finSelectedRegion === 'string') {
+              this.finSelectedRegion = state.finSelectedRegion;
+            }
+            if (typeof state.finSortBy === 'string') {
+              this.finSortBy = state.finSortBy;
+            }
+            if (typeof state.finStatusFilter === 'string') {
+              this.finStatusFilter = state.finStatusFilter;
+            }
+            if (state.finViewMode === 'cards' || state.finViewMode === 'scatter' || state.finViewMode === 'sectors' || state.finViewMode === 'history' || state.finViewMode === 'table') {
+              this.finViewMode = state.finViewMode;
+            }
+          } catch (_) {}
+        },
+
+        async fetchItems() {
+          this.loading = true;
+          this.error = null;
+          this.saveUiState();
+          try {
+            const params = new URLSearchParams();
+            if (this.selectedPlatform) params.set('platform', this.selectedPlatform);
+            if (this.selectedDate) params.set('date', this.selectedDate);
+            if (this.selectedRegion) params.set('region', this.selectedRegion);
+            if (this.selectedLabel) params.set('labels', this.selectedLabel);
+            if (this.searchQuery) params.set('search', this.searchQuery);
+            const data = await this.api('/api/items?' + params.toString());
+            this.items = data.items || [];
+            if (data.date && !this.selectedDate) {
+              this.selectedDate = data.date;
+            }
+            await this.fetchDailyVerdict();
+          } catch (e) {
+            this.error = 'Failed to fetch items. Please try again.';
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        async fetchDailyVerdict() {
+          try {
+            const params = new URLSearchParams();
+            if (this.selectedDate) params.set('date', this.selectedDate);
+            if (this.selectedPlatform) params.set('platform', this.selectedPlatform);
+            if (this.selectedRegion) params.set('region', this.selectedRegion);
+            const data = await this.api('/api/daily-verdict?' + params.toString());
+            this.dailyVerdict = data.verdict || null;
+          } catch (_) {
+            this.dailyVerdict = null;
+          }
+        },
+
+        async fetchDailyAnalysis() {
+          this.loading = true;
+          this.error = null;
+          this.saveUiState();
+          try {
+            const params = new URLSearchParams();
+            if (this.selectedDate) params.set('date', this.selectedDate);
+            const data = await this.api('/api/daily-analysis?' + params.toString());
+            this.analysisEntries = data.entries || [];
+            if (data.date && !this.selectedDate) {
+              this.selectedDate = data.date;
+            }
+          } catch (e) {
+            this.error = 'Failed to fetch daily analysis. Please try again.';
+            this.analysisEntries = [];
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        navigateToNewsWithScope(scopeKey) {
+          // Parse scope_key to extract platform and region filters
+          // Formats: "all", "platform:xxx", "region:xxx", "platform:xxx|region:yyy"
+          let platform = '';
+          let region = '';
+
+          if (scopeKey && scopeKey !== 'all') {
+            const parts = scopeKey.split('|');
+            for (const part of parts) {
+              const [type, value] = part.split(':');
+              if (type === 'platform' && value) {
+                platform = value;
+              } else if (type === 'region' && value) {
+                region = value;
+              }
+            }
+          }
+
+          // Set filters
+          this.selectedPlatform = platform;
+          this.selectedRegion = region;
+          this.selectedLabel = '';
+          this.searchQuery = '';
+
+          // Switch to news view and fetch
+          this.viewMode = 'news';
+          this.fetchItems();
+        },
+
+        async fetchFinancialReports() {
+          this.loading = true;
+          this.error = null;
+          this.saveUiState();
+          try {
+            // Fetch regions if not loaded
+            if (this.finRegions.length === 0) {
+              this.finRegions = await this.api('/api/financial-regions');
+            }
+            const params = new URLSearchParams();
+            if (this.finSelectedRegion) params.set('region', this.finSelectedRegion);
+            if (this.finSearchQuery) params.set('search', this.finSearchQuery);
+            const data = await this.api('/api/financial-reports?' + params.toString());
+            let reports = data.reports || [];
+            if (this.finStatusFilter) {
+              reports = reports.filter(r => r.data_status === this.finStatusFilter);
+            }
+            this.financialReports = reports;
+            this.finWithAI = data.with_ai || 0;
+            this.sortFinancialReports();
+            this.computeFinStats();
+          } catch (e) {
+            this.error = 'Failed to fetch financial reports.';
+            this.financialReports = [];
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        sortFinancialReports() {
+          const key = this.finSortBy;
+          this.financialReports.sort((a, b) => {
+            switch (key) {
+              case 'health_desc': {
+                const aS = a.health_score ?? -1, bS = b.health_score ?? -1;
+                return bS - aS;
+              }
+              case 'health_asc': {
+                const aS = a.health_score ?? 101, bS = b.health_score ?? 101;
+                return aS - bS;
+              }
+              case 'potential_desc': {
+                const aS = a.potential_score ?? -1, bS = b.potential_score ?? -1;
+                return bS - aS;
+              }
+              case 'potential_asc': {
+                const aS = a.potential_score ?? 101, bS = b.potential_score ?? 101;
+                return aS - bS;
+              }
+              case 'name_asc':
+                return (a.company_name || '').localeCompare(b.company_name || '');
+              case 'market_cap_desc': {
+                const aM = a.market_cap ?? 0, bM = b.market_cap ?? 0;
+                return bM - aM;
+              }
+              default: return 0;
+            }
+          });
+          this.saveUiState();
+        },
+
+        computeFinStats() {
+          const scored = this.financialReports.filter(r => r.health_score != null);
+          if (scored.length > 0) {
+            const avgH = scored.reduce((s, r) => s + r.health_score, 0) / scored.length;
+            const avgP = scored.filter(r => r.potential_score != null);
+            this.finAvgHealth = Math.round(avgH);
+            this.finAvgPotential = avgP.length > 0
+              ? Math.round(avgP.reduce((s, r) => s + r.potential_score, 0) / avgP.length)
+              : '--';
+          } else {
+            this.finAvgHealth = '--';
+            this.finAvgPotential = '--';
+          }
+          const sectors = new Set(this.financialReports.map(r => r.sector).filter(Boolean));
+          this.finSectorCount = sectors.size;
+        },
+
+        openFinDetail(report) {
+          this.finDetailReport = report;
+          this.$nextTick(() => this.renderRadarChart());
+        },
+
+        renderScatterChart() {
+          const canvas = document.getElementById('scatterChart');
+          if (!canvas) return;
+          if (this._scatterChart) { this._scatterChart.destroy(); this._scatterChart = null; }
+
+          const scored = this.financialReports.filter(r => r.health_score != null && r.potential_score != null);
+          const sectorColors = {};
+          const palette = [
+            'rgba(99,102,241,0.7)', 'rgba(16,185,129,0.7)', 'rgba(245,158,11,0.7)',
+            'rgba(239,68,68,0.7)', 'rgba(139,92,246,0.7)', 'rgba(236,72,153,0.7)',
+            'rgba(14,165,233,0.7)', 'rgba(168,85,247,0.7)', 'rgba(34,197,94,0.7)',
+            'rgba(251,146,60,0.7)', 'rgba(20,184,166,0.7)', 'rgba(244,63,94,0.7)',
+          ];
+          let ci = 0;
+          scored.forEach(r => {
+            const s = r.sector || 'Unknown';
+            if (!sectorColors[s]) sectorColors[s] = palette[ci++ % palette.length];
+          });
+
+          // Group by sector for datasets
+          const bySector = {};
+          scored.forEach(r => {
+            const s = r.sector || 'Unknown';
+            if (!bySector[s]) bySector[s] = [];
+            bySector[s].push(r);
+          });
+
+          const datasets = Object.entries(bySector).map(([sector, reports]) => ({
+            label: sector,
+            data: reports.map(r => ({ x: r.health_score, y: r.potential_score, report: r })),
+            backgroundColor: sectorColors[sector],
+            borderColor: sectorColors[sector].replace('0.7', '1'),
+            borderWidth: 1,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+          }));
+
+          const self = this;
+          this._scatterChart = new Chart(canvas, {
+            type: 'scatter',
+            data: { datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: 'Health Score', font: { size: 12 } }, min: 0, max: 100 },
+                y: { title: { display: true, text: 'Potential Score', font: { size: 12 } }, min: 0, max: 100 },
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label(ctx) {
+                      const r = ctx.raw.report;
+                      return `${r.ticker} (${r.company_name}) — Health: ${r.health_score}, Potential: ${r.potential_score}`;
+                    }
+                  }
+                },
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+              },
+              onClick(evt, elements) {
+                if (elements.length > 0) {
+                  const el = elements[0];
+                  const r = datasets[el.datasetIndex].data[el.index].report;
+                  self.openFinDetail(r);
+                }
+              },
+            },
+          });
+        },
+
+        renderSectorChart() {
+          const canvas = document.getElementById('sectorChart');
+          if (!canvas) return;
+          if (this._sectorChart) { this._sectorChart.destroy(); this._sectorChart = null; }
+
+          const sectorData = {};
+          this.financialReports.forEach(r => {
+            if (r.health_score == null) return;
+            const s = r.sector || 'Unknown';
+            if (!sectorData[s]) sectorData[s] = { healthSum: 0, potentialSum: 0, healthCount: 0, potentialCount: 0 };
+            sectorData[s].healthSum += r.health_score;
+            sectorData[s].healthCount++;
+            if (r.potential_score != null) {
+              sectorData[s].potentialSum += r.potential_score;
+              sectorData[s].potentialCount++;
+            }
+          });
+
+          const sorted = Object.entries(sectorData)
+            .map(([sector, d]) => ({
+              sector,
+              avgHealth: Math.round(d.healthSum / d.healthCount),
+              avgPotential: d.potentialCount > 0 ? Math.round(d.potentialSum / d.potentialCount) : 0,
+              count: d.healthCount,
+            }))
+            .sort((a, b) => b.avgHealth - a.avgHealth);
+
+          const labels = sorted.map(d => d.sector + ` (${d.count})`);
+          this._sectorChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                { label: 'Avg Health', data: sorted.map(d => d.avgHealth), backgroundColor: 'rgba(16,185,129,0.6)', borderColor: 'rgb(16,185,129)', borderWidth: 1 },
+                { label: 'Avg Potential', data: sorted.map(d => d.avgPotential), backgroundColor: 'rgba(99,102,241,0.6)', borderColor: 'rgb(99,102,241)', borderWidth: 1 },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: sorted.length > 8 ? 'y' : 'x',
+              scales: {
+                x: { beginAtZero: true, max: 100 },
+                y: { beginAtZero: true },
+              },
+              plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+              },
+            },
+          });
+        },
+
+        renderRadarChart() {
+          const canvas = document.getElementById('radarChart');
+          if (!canvas) return;
+          if (this._radarChart) { this._radarChart.destroy(); this._radarChart = null; }
+          const r = this.finDetailReport;
+          if (!r) return;
+
+          // Normalize metrics to 0-100 scale for radar
+          const health = r.health_score ?? 0;
+          const potential = r.potential_score ?? 0;
+          const growth = r.revenue_growth != null ? Math.max(0, Math.min(100, (r.revenue_growth + 0.5) * 100)) : 0;
+          const margin = r.profit_margin != null ? Math.max(0, Math.min(100, (r.profit_margin + 0.5) * 100)) : 0;
+          // Debt-to-equity ratio (inverted: lower debt = higher score)
+          let debtScore = 50;
+          if (r.total_debt != null && r.total_equity != null && r.total_equity > 0) {
+            const deRatio = r.total_debt / r.total_equity;
+            debtScore = Math.max(0, Math.min(100, 100 - (deRatio * 33)));
+          }
+          // Cash strength: cash as % of total assets
+          let cashScore = 50;
+          if (r.cash != null && r.total_assets != null && r.total_assets > 0) {
+            cashScore = Math.max(0, Math.min(100, (r.cash / r.total_assets) * 200));
+          }
+
+          this._radarChart = new Chart(canvas, {
+            type: 'radar',
+            data: {
+              labels: ['Health', 'Potential', 'Growth', 'Profitability', 'Low Debt', 'Cash Strength'],
+              datasets: [{
+                label: r.ticker,
+                data: [health, potential, growth, margin, debtScore, cashScore],
+                backgroundColor: 'rgba(99,102,241,0.15)',
+                borderColor: 'rgba(99,102,241,0.8)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(99,102,241,1)',
+                pointRadius: 4,
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                r: { beginAtZero: true, max: 100, ticks: { stepSize: 25, font: { size: 9 } }, pointLabels: { font: { size: 11 } } },
+              },
+              plugins: { legend: { display: false } },
+            },
+          });
+        },
+
+        async fetchFinancialHistory() {
+          if (!this.histTicker) { this.histData = []; this.histTableRows = []; return; }
+          try {
+            const params = new URLSearchParams();
+            params.set('ticker', this.histTicker);
+            params.set('periods', this.histPeriods);
+            const data = await this.api('/api/financial-history?' + params.toString());
+            const byTicker = data.by_ticker || {};
+            const records = byTicker[this.histTicker] || [];
+            // Sort chronologically (oldest first for chart)
+            this.histData = records.sort((a, b) => (a.report_date || '').localeCompare(b.report_date || ''));
+            this.computeHistTable();
+            this.$nextTick(() => this.renderHistoryChart());
+          } catch (e) {
+            this.histData = [];
+            this.histTableRows = [];
+          }
+        },
+
+        histMetricLabel() {
+          const labels = {
+            revenue: 'Revenue', net_income: 'Net Income', gross_profit: 'Gross Profit',
+            ebitda: 'EBITDA', operating_income: 'Operating Income', free_cash_flow: 'Free Cash Flow',
+            total_assets: 'Total Assets', total_equity: 'Total Equity', total_debt: 'Total Debt',
+            market_cap: 'Market Cap',
+          };
+          return labels[this.histMetric] || this.histMetric;
+        },
+
+        computeHistTable() {
+          const metric = this.histMetric;
+          const rows = [];
+          for (let i = 0; i < this.histData.length; i++) {
+            const d = this.histData[i];
+            const val = d[metric];
+            let change = null;
+            let changeStr = '--';
+            if (i > 0 && val != null) {
+              const prev = this.histData[i - 1][metric];
+              if (prev != null && prev !== 0) {
+                change = ((val - prev) / Math.abs(prev)) * 100;
+                changeStr = (change >= 0 ? '+' : '') + change.toFixed(1) + '%';
+              }
+            }
+            rows.push({
+              period: d.report_period || d.report_date || '?',
+              value: val,
+              change: change ?? 0,
+              changeStr,
+            });
+          }
+          // Show newest first in table
+          this.histTableRows = rows.reverse();
+        },
+
+        renderHistoryChart() {
+          const canvas = document.getElementById('historyChart');
+          if (!canvas) return;
+          if (this._historyChart) { this._historyChart.destroy(); this._historyChart = null; }
+          if (this.histData.length === 0) return;
+
+          const metric = this.histMetric;
+          const labels = this.histData.map(d => d.report_period || d.report_date || '?');
+          const values = this.histData.map(d => d[metric]);
+          const hasNegative = values.some(v => v != null && v < 0);
+
+          this._historyChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{
+                label: this.histMetricLabel(),
+                data: values,
+                backgroundColor: values.map(v =>
+                  v == null ? 'rgba(156,163,175,0.3)' :
+                  v >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'
+                ),
+                borderColor: values.map(v =>
+                  v == null ? 'rgb(156,163,175)' :
+                  v >= 0 ? 'rgb(16,185,129)' : 'rgb(239,68,68)'
+                ),
+                borderWidth: 1,
+                borderRadius: 4,
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: !hasNegative,
+                  ticks: {
+                    callback: (val) => {
+                      const abs = Math.abs(val);
+                      const sign = val < 0 ? '-' : '';
+                      if (abs >= 1e12) return sign + '$' + (abs / 1e12).toFixed(1) + 'T';
+                      if (abs >= 1e9) return sign + '$' + (abs / 1e9).toFixed(1) + 'B';
+                      if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(0) + 'M';
+                      return sign + '$' + abs.toFixed(0);
+                    },
+                    font: { size: 11 },
+                  },
+                },
+                x: { ticks: { font: { size: 11 } } },
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => {
+                      const v = ctx.raw;
+                      if (v == null) return 'N/A';
+                      return this.histMetricLabel() + ': ' + this.formatFinNum(v);
+                    },
+                  },
+                },
+              },
+            },
+          });
+        },
+
+        formatFinRegion(key) {
+          if (!key) return 'Unknown';
+          const labels = {
+            us_300: 'US Top 300',
+            china_300: 'China Top 300',
+            finland_100: 'Finland Top 100',
+            europe_300: 'Europe Top 300',
+            global_500: 'Global Top 500',
+          };
+          return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        },
+
+        // Company Scores computed
+        get scoresVisibleColumnsList() {
+          return [
+            { key: 'ticker', label: 'Ticker' },
+            { key: 'company_name', label: 'Company' },
+            { key: 'sector', label: 'Sector' },
+            { key: 'industry', label: 'Industry' },
+            { key: 'health_score', label: 'Health' },
+            { key: 'potential_score', label: 'Potential' },
+            { key: 'revenue', label: 'Revenue' },
+            { key: 'market_cap', label: 'Market Cap' },
+            { key: 'profit_margin', label: 'Profit Margin' },
+            { key: 'revenue_growth', label: 'Rev Growth' },
+          ];
+        },
+
+        async fetchCompanyScores() {
+          this.loading = true;
+          this.error = null;
+          this.saveUiState();
+          try {
+            // Fetch filters if not loaded
+            if (this.scoresFilters.sectors.length === 0) {
+              const filters = await this.api('/api/company-scores/filters');
+              this.scoresFilters = filters;
+            }
+            const params = new URLSearchParams();
+            if (this.scoresSelectedSector) params.set('sector', this.scoresSelectedSector);
+            if (this.scoresSelectedIndustry) params.set('industry', this.scoresSelectedIndustry);
+            if (this.scoresMinHealth) params.set('min_health', this.scoresMinHealth);
+            if (this.scoresMaxHealth) params.set('max_health', this.scoresMaxHealth);
+            if (this.scoresMinPotential) params.set('min_potential', this.scoresMinPotential);
+            if (this.scoresMaxPotential) params.set('max_potential', this.scoresMaxPotential);
+            if (this.scoresSortBy) params.set('sort_by', this.scoresSortBy);
+            const data = await this.api('/api/company-scores?' + params.toString());
+            this.companyScoresData = data;
+          } catch (e) {
+            this.error = 'Failed to fetch company scores.';
+            this.companyScoresData = { count: 0, avg_health_score: 0, avg_potential_score: 0, companies: [] };
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        renderScoresScatterChart() {
+          const canvas = document.getElementById('scoresScatterChart');
+          if (!canvas) return;
+          if (this._scoresScatterChart) { this._scoresScatterChart.destroy(); this._scoresScatterChart = null; }
+
+          const companies = this.companyScoresData.companies || [];
+          const scored = companies.filter(c => c.health_score != null && c.potential_score != null);
+
+          const sectorColors = {};
+          const palette = [
+            'rgba(99,102,241,0.7)', 'rgba(16,185,129,0.7)', 'rgba(245,158,11,0.7)',
+            'rgba(239,68,68,0.7)', 'rgba(139,92,246,0.7)', 'rgba(236,72,153,0.7)',
+            'rgba(14,165,233,0.7)', 'rgba(168,85,247,0.7)', 'rgba(34,197,94,0.7)',
+          ];
+          let ci = 0;
+          scored.forEach(c => {
+            const s = c.sector || 'Unknown';
+            if (!sectorColors[s]) sectorColors[s] = palette[ci++ % palette.length];
+          });
+
+          // Group by sector
+          const bySector = {};
+          scored.forEach(c => {
+            const s = c.sector || 'Unknown';
+            if (!bySector[s]) bySector[s] = [];
+            bySector[s].push(c);
+          });
+
+          const datasets = Object.entries(bySector).map(([sector, comps]) => ({
+            label: sector,
+            data: comps.map(c => ({ x: c.health_score, y: c.potential_score, company: c })),
+            backgroundColor: sectorColors[sector],
+            borderColor: sectorColors[sector].replace('0.7', '1'),
+            borderWidth: 1,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+          }));
+
+          this._scoresScatterChart = new Chart(canvas, {
+            type: 'scatter',
+            data: { datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: 'Health Score', font: { size: 12 } }, min: 0, max: 100 },
+                y: { title: { display: true, text: 'Potential Score', font: { size: 12 } }, min: 0, max: 100 },
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label(ctx) {
+                      const c = ctx.raw.company;
+                      return `${c.ticker} (${c.company_name}) — Health: ${c.health_score}, Potential: ${c.potential_score}`;
+                    }
+                  }
+                },
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+              },
+            },
+          });
+        },
+
+        renderScoresBarChart() {
+          const canvas = document.getElementById('scoresBarChart');
+          if (!canvas) return;
+          if (this._scoresBarChart) { this._scoresBarChart.destroy(); this._scoresBarChart = null; }
+
+          const companies = this.companyScoresData.companies || [];
+
+          // Aggregate by sector
+          const sectorStats = {};
+          companies.forEach(c => {
+            const s = c.sector || 'Unknown';
+            if (!sectorStats[s]) {
+              sectorStats[s] = { healthSum: 0, potentialSum: 0, count: 0 };
+            }
+            sectorStats[s].healthSum += c.health_score || 0;
+            sectorStats[s].potentialSum += c.potential_score || 0;
+            sectorStats[s].count += 1;
+          });
+
+          const sectors = Object.entries(sectorStats)
+            .map(([sector, stats]) => ({
+              sector,
+              avgHealth: stats.count > 0 ? stats.healthSum / stats.count : 0,
+              avgPotential: stats.count > 0 ? stats.potentialSum / stats.count : 0,
+            }))
+            .sort((a, b) => b.avgHealth - a.avgHealth);
+
+          this._scoresBarChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+              labels: sectors.map(s => s.sector),
+              datasets: [
+                {
+                  label: 'Avg Health Score',
+                  data: sectors.map(s => s.avgHealth),
+                  backgroundColor: 'rgba(99,102,241,0.7)',
+                  borderColor: 'rgba(99,102,241,1)',
+                  borderWidth: 1,
+                },
+                {
+                  label: 'Avg Potential Score',
+                  data: sectors.map(s => s.avgPotential),
+                  backgroundColor: 'rgba(16,185,129,0.7)',
+                  borderColor: 'rgba(16,185,129,1)',
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: 'Sector', font: { size: 12 } } },
+                y: { title: { display: true, text: 'Score', font: { size: 12 } }, min: 0, max: 100 },
+              },
+              plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+              },
+            },
+          });
+        },
+
+        formatFinNum(value) {
+          if (value === null || value === undefined) return 'Unknown';
+          const abs = Math.abs(value);
+          const sign = value < 0 ? '-' : '';
+          let formatted;
+          if (abs >= 1e12) formatted = sign + (abs / 1e12).toFixed(2) + 'T';
+          else if (abs >= 1e9) formatted = sign + (abs / 1e9).toFixed(2) + 'B';
+          else if (abs >= 1e6) formatted = sign + (abs / 1e6).toFixed(1) + 'M';
+          else if (abs >= 1e3) formatted = sign + (abs / 1e3).toFixed(1) + 'K';
+          else formatted = sign + abs.toFixed(0);
+          return '$' + formatted;
+        },
+
+        formatCurrency(value) {
+          if (value === null || value === undefined || !Number.isFinite(value)) return '-';
+          const abs = Math.abs(value);
+          const sign = value < 0 ? '-' : '';
+          let formatted;
+          if (abs >= 1e12) formatted = sign + (abs / 1e12).toFixed(2) + 'T';
+          else if (abs >= 1e9) formatted = sign + (abs / 1e9).toFixed(2) + 'B';
+          else if (abs >= 1e6) formatted = sign + (abs / 1e6).toFixed(1) + 'M';
+          else if (abs >= 1e3) formatted = sign + (abs / 1e3).toFixed(1) + 'K';
+          else formatted = sign + abs.toFixed(0);
+          return '$' + formatted;
+        },
+
+        async api(url) {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        },
+
+        formatPlatform(name) {
+          if (!name) return 'Unknown';
+          return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        },
+
+        formatScopeKey(key) {
+          if (!key) return 'Unknown';
+          if (key === 'all') return 'All Sources';
+          // Format "platform:xxx|region:yyy" or "platform:xxx" or "region:yyy"
+          return key
+            .split('|')
+            .map(part => {
+              const [type, value] = part.split(':');
+              const formattedValue = (value || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+              return formattedValue;
+            })
+            .join(' / ');
+        },
+
+        formatRegion(name) {
+          if (!name) return 'Unknown';
+          return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        },
+
+        formatHeat(heat) {
+          if (heat === null || heat === undefined) return 'Unknown';
+          if (heat >= 1_000_000) return (heat / 1_000_000).toFixed(1) + 'M';
+          if (heat >= 1_000) return (heat / 1_000).toFixed(1) + 'K';
+          return String(heat);
+        },
+
+        nk(value) {
+          if (value === null || value === undefined || value === '') return 'Unknown';
+          return value;
+        },
+
+        formatScore(score) {
+          if (score === null || score === undefined) return 'Unknown';
+          const n = Number(score);
+          if (!Number.isFinite(n)) return 'Unknown';
+          return String(Math.max(0, Math.min(100, Math.round(n))));
+        },
+
+        // Financial Analyst Recommended Color Functions
+        scoreColorStyle(score) {
+          // Health/Potential Score: 0-100 with thresholds
+          // 80-100: Excellent (Green), 60-79: Good (Light Green), 40-59: Fair (Yellow), 20-39: Poor (Orange), 0-19: Critical (Red)
+          if (score === null || score === undefined) {
+            return 'background-color: rgb(243 244 246); color: rgb(75 85 99); border-color: rgb(209 213 219);';
+          }
+          const n = Number(score);
+          if (!Number.isFinite(n)) {
+            return 'background-color: rgb(243 244 246); color: rgb(75 85 99); border-color: rgb(209 213 219);';
+          }
+          if (n >= 80) return 'background-color: #dcfce7; color: #166534; border-color: #86efac;'; // Green - Excellent
+          if (n >= 60) return 'background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;'; // Light Green - Good
+          if (n >= 40) return 'background-color: #fefce8; color: #a16207; border-color: #fde047;'; // Yellow - Fair
+          if (n >= 20) return 'background-color: #fff7ed; color: #c2410c; border-color: #fdba74;'; // Orange - Poor
+          return 'background-color: #fef2f2; color: #dc2626; border-color: #fca5a5;'; // Red - Critical
+        },
+
+        // Color coding for profit margin (percentage)
+        profitMarginColor(margin) {
+          if (margin === null || margin === undefined) return 'text-gray-500';
+          const n = Number(margin);
+          if (!Number.isFinite(n)) return 'text-gray-500';
+          if (n >= 0.15) return 'text-emerald-600'; // >15% - Green
+          if (n >= 0.10) return 'text-emerald-500'; // 10-15% - Light Green
+          if (n >= 0.05) return 'text-amber-600';   // 5-10% - Yellow
+          if (n >= 0) return 'text-orange-500';      // 0-5% - Orange
+          return 'text-red-600';                      // Negative - Red
+        },
+
+        // Color coding for revenue growth (percentage)
+        revenueGrowthColor(growth) {
+          if (growth === null || growth === undefined) return 'text-gray-500';
+          const n = Number(growth);
+          if (!Number.isFinite(n)) return 'text-gray-500';
+          if (n >= 0.20) return 'text-emerald-600'; // >20% - Green
+          if (n >= 0.10) return 'text-emerald-500'; // 10-20% - Light Green
+          if (n >= 0.05) return 'text-amber-600';  // 5-10% - Yellow
+          if (n >= 0) return 'text-orange-500';      // 0-5% - Orange
+          return 'text-red-600';                      // Negative - Red
+        },
+
+        // Color coding for P/E ratio
+        peRatioColor(pe) {
+          if (pe === null || pe === undefined) return 'text-gray-500';
+          const n = Number(pe);
+          if (!Number.isFinite(n) || n < 0) return 'text-red-600'; // Negative earnings
+          if (n >= 0 && n < 15) return 'text-emerald-600';  // 0-15 - Undervalued (Green)
+          if (n >= 15 && n < 25) return 'text-amber-600';    // 15-25 - Fair (Yellow)
+          if (n >= 25 && n < 40) return 'text-orange-500';   // 25-40 - Overvalued (Orange)
+          return 'text-red-600';                               // >40 - High (Red)
+        },
+
+        // Color coding for general positive/negative values
+        positiveNegativeColor(value) {
+          if (value === null || value === undefined) return 'text-gray-500';
+          const n = Number(value);
+          if (!Number.isFinite(n)) return 'text-gray-500';
+          return n >= 0 ? 'text-emerald-600' : 'text-red-600';
+        },
+
+        platformColor(name) {
+          return this._colors[name] || 'bg-gray-100 text-gray-800';
+        },
+      };
+    }
+  </script>
+</body>
+</html>

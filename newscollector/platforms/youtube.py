@@ -43,7 +43,11 @@ class YouTubeCollector(BaseCollector):
     def _get_api_key(self) -> str | None:
         return self.config.get("youtube", {}).get("api_key")
 
-    async def collect(self, region: str | None = None) -> CollectionResult:
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         api_key = self._get_api_key()
         if not api_key:
             return CollectionResult(

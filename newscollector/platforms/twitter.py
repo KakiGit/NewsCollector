@@ -39,7 +39,11 @@ class TwitterCollector(BaseCollector):
     def _get_bearer_token(self) -> str | None:
         return self.config.get("twitter", {}).get("bearer_token")
 
-    async def collect(self, region: str | None = None) -> CollectionResult:
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         bearer = self._get_bearer_token()
         if not bearer:
             return CollectionResult(
@@ -81,7 +85,7 @@ class TwitterCollector(BaseCollector):
         try:
             # The trends endpoint is still v1.1
             resp = await client.get(
-                f"https://api.twitter.com/1.1/trends/place.json",
+                "https://api.twitter.com/1.1/trends/place.json",
                 params={"id": woeid},
             )
             resp.raise_for_status()

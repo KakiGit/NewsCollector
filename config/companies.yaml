@@ -1,0 +1,1468 @@
+# Company lists for financial report collection.
+# Organized by region/list. Ticker symbols are yfinance-compatible.
+# Format: ticker: "Company Name"
+#
+# Auto-updated by: python -m newscollector update-companies
+
+companies:
+  us_300:
+    AAPL: Apple Inc.
+    MSFT: Microsoft Corporation
+    AMZN: Amazon.com, Inc.
+    NVDA: NVIDIA Corporation
+    GOOGL: Alphabet Inc.
+    META: Meta Platforms, Inc.
+    BRK-B: Berkshire Hathaway Inc.
+    LLY: Eli Lilly and Company
+    UNH: UnitedHealth Group Incorporated
+    JPM: JPMorgan Chase & Co.
+    V: Visa Inc.
+    XOM: Exxon Mobil Corporation
+    AVGO: Broadcom Inc.
+    MA: Mastercard Incorporated
+    JNJ: Johnson & Johnson
+    PG: The Procter & Gamble Company
+    HD: The Home Depot, Inc.
+    COST: Costco Wholesale Corporation
+    MRK: Merck & Co., Inc.
+    ABBV: AbbVie Inc.
+    ORCL: Oracle Corporation
+    CRM: Salesforce, Inc.
+    AMD: Advanced Micro Devices, Inc.
+    NFLX: Netflix, Inc.
+    WMT: Walmart Inc.
+    PEP: PepsiCo, Inc.
+    KO: The Coca-Cola Company
+    TMO: Thermo Fisher Scientific Inc.
+    ACN: Accenture plc
+    CSCO: Cisco Systems, Inc.
+    LIN: Linde plc
+    ABT: Abbott Laboratories
+    MCD: McDonald's Corporation
+    ADBE: Adobe Inc.
+    WFC: Wells Fargo & Company
+    DHR: Danaher Corporation
+    TXN: Texas Instruments Incorporated
+    PM: Philip Morris International Inc.
+    DIS: The Walt Disney Company
+    NEE: NextEra Energy, Inc.
+    BMY: Bristol-Myers Squibb Company
+    RTX: RTX Corporation
+    UNP: Union Pacific Corporation
+    QCOM: QUALCOMM Incorporated
+    INTU: Intuit Inc.
+    CAT: Caterpillar Inc.
+    AMGN: Amgen Inc.
+    T: AT&T Inc.
+    GS: The Goldman Sachs Group, Inc.
+    HON: Honeywell International Inc.
+    DE: Deere & Company
+    BA: The Boeing Company
+    MS: Morgan Stanley
+    ISRG: Intuitive Surgical, Inc.
+    IBM: International Business Machines Corporation
+    AXP: American Express Company
+    LOW: Lowe's Companies, Inc.
+    BKNG: Booking Holdings Inc.
+    GE: GE Aerospace
+    BLK: BlackRock, Inc.
+    SYK: Stryker Corporation
+    MDLZ: Mondelez International, Inc.
+    ELV: Elevance Health, Inc.
+    VRTX: Vertex Pharmaceuticals Incorporated
+    ADP: Automatic Data Processing, Inc.
+    CI: The Cigna Group
+    GILD: Gilead Sciences, Inc.
+    REGN: Regeneron Pharmaceuticals, Inc.
+    ADI: Analog Devices, Inc.
+    SLB: SLB N.V.
+    LRCX: Lam Research Corporation
+    TJX: The TJX Companies, Inc.
+    PLD: Prologis, Inc.
+    CVS: CVS Health Corporation
+    MMC: Marsh & McLennan Companies, Inc.
+    TMUS: T-Mobile US, Inc.
+    SCHW: The Charles Schwab Corporation
+    CME: CME Group Inc.
+    ANET: Arista Networks, Inc.
+    BSX: Boston Scientific Corporation
+    BDX: Becton, Dickinson and Company
+    PGR: The Progressive Corporation
+    MU: Micron Technology, Inc.
+    ETN: Eaton Corporation plc
+    SNPS: Synopsys, Inc.
+    KLAC: KLA Corporation
+    ICE: Intercontinental Exchange, Inc.
+    SHW: The Sherwin-Williams Company
+    PYPL: PayPal Holdings, Inc.
+    CDNS: Cadence Design Systems, Inc.
+    CL: Colgate-Palmolive Company
+    MCK: McKesson Corporation
+    MPC: Marathon Petroleum Corporation
+    FDX: FedEx Corporation
+    CMG: Chipotle Mexican Grill, Inc.
+    NSC: Norfolk Southern Corporation
+    MNST: Monster Beverage Corporation
+    ORLY: O'Reilly Automotive, Inc.
+    ROP: Roper Technologies, Inc.
+    FCX: Freeport-McMoRan Inc.
+    PH: Parker-Hannifin Corporation
+    AZO: AutoZone, Inc.
+    NXPI: NXP Semiconductors N.V.
+    APD: Air Products and Chemicals, Inc.
+    AON: Aon plc
+    ITW: Illinois Tool Works Inc.
+    WM: Waste Management, Inc.
+    PSX: Phillips 66
+    CCI: Crown Castle Inc.
+    MAR: Marriott International, Inc.
+    EMR: Emerson Electric Co.
+    CTAS: Cintas Corporation
+    GD: General Dynamics Corporation
+    MSI: Motorola Solutions, Inc.
+    DXCM: DexCom, Inc.
+    MCO: Moody's Corporation
+    AIG: American International Group, Inc.
+    COF: Capital One Financial Corporation
+    PSA: Public Storage
+    EW: Edwards Lifesciences Corporation
+    WELL: Welltower Inc.
+    FTNT: Fortinet, Inc.
+    ADSK: Autodesk, Inc.
+    GM: General Motors Company
+    OXY: Occidental Petroleum Corporation
+    TEL: TE Connectivity plc
+    SRE: Sempra
+    MCHP: Microchip Technology Incorporated
+    CTVA: Corteva, Inc.
+    HUM: Humana Inc.
+    TT: Trane Technologies plc
+    CARR: Carrier Global Corporation
+    BK: The Bank of New York Mellon Corporation
+    KDP: Keurig Dr Pepper Inc.
+    KMB: Kimberly-Clark Corporation
+    AFL: Aflac Incorporated
+    SPG: Simon Property Group, Inc.
+    PAYX: Paychex, Inc.
+    AMP: Ameriprise Financial, Inc.
+    YUM: Yum! Brands, Inc.
+    A: Agilent Technologies, Inc.
+    F: Ford Motor Company
+    D: Dominion Energy, Inc.
+    GIS: General Mills, Inc.
+    KHC: The Kraft Heinz Company
+    DD: DuPont de Nemours, Inc.
+    DOW: Dow Inc.
+    WEC: WEC Energy Group, Inc.
+    O: Realty Income Corporation
+    PPG: PPG Industries, Inc.
+    BIIB: Biogen Inc.
+    KEYS: Keysight Technologies, Inc.
+    HCA: HCA Healthcare, Inc.
+    RSG: Republic Services, Inc.
+    IDXX: IDEXX Laboratories, Inc.
+    LHX: L3Harris Technologies, Inc.
+    STZ: Constellation Brands, Inc.
+    TDG: TransDigm Group Incorporated
+    AEP: American Electric Power Company, Inc.
+    IQV: IQVIA Holdings Inc.
+    MSCI: MSCI Inc.
+    HSY: The Hershey Company
+    EXC: Exelon Corporation
+    XEL: Xcel Energy Inc.
+    IR: Ingersoll Rand Inc.
+    ED: Consolidated Edison, Inc.
+    FAST: Fastenal Company
+    MTD: Mettler-Toledo International Inc.
+    VRSK: Verisk Analytics, Inc.
+    GWW: W.W. Grainger, Inc.
+    OTIS: Otis Worldwide Corporation
+    RMD: ResMed Inc.
+    PCG: PG&E Corporation
+    WMB: The Williams Companies, Inc.
+    TRGP: Targa Resources Corp.
+    EXR: Extra Space Storage Inc.
+    CEG: Constellation Energy Corporation
+    AWK: American Water Works Company, Inc.
+    CDW: CDW Corporation
+    DLR: Digital Realty Trust, Inc.
+    DHI: D.R. Horton, Inc.
+    CPRT: Copart, Inc.
+    FANG: Diamondback Energy, Inc.
+    MPWR: Monolithic Power Systems, Inc.
+    LEN: Lennar Corporation
+    ZBH: Zimmer Biomet Holdings, Inc.
+    PWR: Quanta Services, Inc.
+    WTW: Willis Towers Watson Public Limited Company
+    ACGL: Arch Capital Group Ltd.
+    MLM: Martin Marietta Materials, Inc.
+    AVB: AvalonBay Communities, Inc.
+    EQR: Equity Residential
+    VICI: VICI Properties Inc.
+    TSCO: Tractor Supply Company
+    HPQ: HP Inc.
+    BR: Broadridge Financial Solutions, Inc.
+    TYL: Tyler Technologies, Inc.
+    CHD: Church & Dwight Co., Inc.
+    MOH: Molina Healthcare, Inc.
+    SBAC: SBA Communications Corporation
+    ROL: Rollins, Inc.
+    STE: STERIS plc
+    BAX: Baxter International Inc.
+    VTR: Ventas, Inc.
+    J: Jacobs Solutions Inc.
+    HOLX: Hologic, Inc.
+    FTV: Fortive Corporation
+    IFF: International Flavors & Fragrances Inc.
+    OMC: Omnicom Group Inc.
+    EQT: EQT Corporation
+    WAB: Westinghouse Air Brake Technologies Corporation
+    NTRS: Northern Trust Corporation
+    BRO: Brown & Brown, Inc.
+    SWK: Stanley Black & Decker, Inc.
+    WAT: Waters Corporation
+    JBHT: J.B. Hunt Transport Services, Inc.
+    DPZ: Domino's Pizza, Inc.
+    CE: Celanese Corporation
+    CRL: Charles River Laboratories International, Inc.
+    ALGN: Align Technology, Inc.
+    STT: State Street Corporation
+    HIG: The Hartford Insurance Group, Inc.
+    DAL: Delta Air Lines, Inc.
+    UAL: United Airlines Holdings, Inc.
+    CCL: Carnival Corporation & plc
+    LYB: LyondellBasell Industries N.V.
+    TTWO: Take-Two Interactive Software, Inc.
+    TER: Teradyne, Inc.
+    NDAQ: Nasdaq, Inc.
+    CFG: Citizens Financial Group, Inc.
+    DRI: Darden Restaurants, Inc.
+    ULTA: Ulta Beauty, Inc.
+    KMI: Kinder Morgan, Inc.
+    CLX: The Clorox Company
+    NTAP: NetApp, Inc.
+    NRG: NRG Energy, Inc.
+    TROW: T. Rowe Price Group, Inc.
+    ZS: Zscaler, Inc.
+    ESS: Essex Property Trust, Inc.
+    ARE: Alexandria Real Estate Equities, Inc.
+    CBOE: Cboe Global Markets, Inc.
+    CTRA: Coterra Energy Inc.
+    LKQ: LKQ Corporation
+    GRMN: Garmin Ltd.
+    HUBB: Hubbell Incorporated
+    RF: Regions Financial Corporation
+    MKC: McCormick & Company, Incorporated
+    FMC: FMC Corporation
+    WRB: W. R. Berkley Corporation
+    VTRS: Viatris Inc.
+    LULU: lululemon athletica inc.
+    true: ON Semiconductor Corp.
+    CZR: Caesars Entertainment, Inc.
+    IP: International Paper Company
+    L: Loews Corporation
+    MAS: Masco Corporation
+    DOV: Dover Corporation
+    POOL: Pool Corporation
+    NVR: NVR, Inc.
+    LW: Lamb Weston Holdings, Inc.
+    INCY: Incyte Corporation
+    FDS: FactSet Research Systems Inc.
+    AES: The AES Corporation
+    CF: CF Industries Holdings, Inc.
+    PTC: PTC Inc.
+    WBD: Warner Bros. Discovery, Inc.
+    LUV: Southwest Airlines Co.
+    PANW: Palo Alto Networks, Inc.
+    CRWD: CrowdStrike Holdings, Inc.
+    SNOW: Snowflake Inc.
+    UBER: Uber Technologies, Inc.
+    ABNB: Airbnb, Inc.
+    COIN: Coinbase Global, Inc.
+    RIVN: Rivian Automotive, Inc.
+    LCID: Lucid Group, Inc.
+    PLTR: Palantir Technologies Inc.
+    DASH: DoorDash, Inc.
+    SHOP: Shopify Inc.
+    MELI: MercadoLibre, Inc.
+    SE: Sea Limited
+    SNAP: Snap Inc.
+    PINS: Pinterest, Inc.
+    ROKU: Roku, Inc.
+    NET: Cloudflare, Inc.
+    DDOG: Datadog, Inc.
+    MDB: MongoDB, Inc.
+    TEAM: Atlassian Corporation
+    WDAY: Workday, Inc.
+    OKTA: Okta, Inc.
+    VEEV: Veeva Systems Inc.
+    TWLO: Twilio Inc.
+    ZM: Zoom Communications, Inc.
+    ENPH: Enphase Energy, Inc.
+    SEDG: SolarEdge Technologies, Inc.
+    FSLR: First Solar, Inc.
+    VRT: Vertiv Holdings Co
+    SMCI: Super Micro Computer, Inc.
+    ARM: Arm Holdings plc
+    APP: AppLovin Corporation
+  china_300:
+    0700.HK: Tencent Holdings Limited
+    9988.HK: Alibaba Group Holding Limited
+    3690.HK: Meituan
+    9999.HK: NetEase, Inc.
+    1810.HK: Xiaomi Corporation
+    2020.HK: ANTA Sports Products Limited
+    9618.HK: JD.com, Inc.
+    9888.HK: Baidu, Inc.
+    1024.HK: Kuaishou Technology
+    2015.HK: Li Auto Inc.
+    9868.HK: XPeng Inc.
+    9866.HK: NIO Inc.
+    0981.HK: Semiconductor Manufacturing International Corporation
+    1211.HK: BYD Company Limited
+    0005.HK: HSBC Holdings plc
+    0941.HK: China Mobile Limited
+    0388.HK: Hong Kong Exchanges and Clearing Limited
+    2318.HK: Ping An Insurance (Group) Company of China, Ltd.
+    0939.HK: China Construction Bank Corporation
+    1398.HK: Industrial and Commercial Bank of China Limited
+    3988.HK: Bank of China Limited
+    0001.HK: CK Hutchison Holdings Limited
+    0016.HK: Sun Hung Kai Properties Limited
+    0002.HK: CLP Holdings Limited
+    0003.HK: The Hong Kong and China Gas Company Limited
+    0006.HK: Power Assets Holdings Limited
+    0011.HK: HANG SENG BANK
+    0012.HK: Henderson Land Development Company Limited
+    0017.HK: New World Development Company Limited
+    0027.HK: Galaxy Entertainment Group Limited
+    0066.HK: MTR Corporation Limited
+    0101.HK: Hang Lung Properties Limited
+    0175.HK: Geely Automobile Holdings Limited
+    0267.HK: CITIC Limited
+    0288.HK: WH Group Limited
+    0386.HK: China Petroleum & Chemical Corporation
+    0688.HK: China Overseas Land & Investment Limited
+    0762.HK: China Unicom (Hong Kong) Limited
+    0823.HK: Link Real Estate Investment Trust
+    0857.HK: PetroChina Company Limited
+    0883.HK: CNOOC Limited
+    0960.HK: Longfor Group Holdings Limited
+    1038.HK: CK Infrastructure Holdings Limited
+    1044.HK: Hengan International Group Company Limited
+    1088.HK: China Shenhua Energy Company Limited
+    1109.HK: China Resources Land Limited
+    1113.HK: CK Asset Holdings Limited
+    1177.HK: Sino Biopharmaceutical Limited
+    1299.HK: AIA Group Limited
+    1928.HK: Sands China Ltd.
+    1997.HK: Wharf Real Estate Investment Company Limited
+    2007.HK: Country Garden Holdings Company Limited
+    2269.HK: WuXi Biologics (Cayman) Inc.
+    2313.HK: Shenzhou International Group Holdings Limited
+    2319.HK: China Mengniu Dairy Company Limited
+    2382.HK: Sunny Optical Technology (Group) Company Limited
+    2388.HK: BOC Hong Kong (Holdings) Limited
+    2628.HK: China Life Insurance Company Limited
+    6098.HK: Country Garden Services Holdings Company Limited
+    6862.HK: Haidilao International Holding Ltd.
+    9633.HK: Nongfu Spring Co., Ltd.
+    9901.HK: New Oriental Education & Technology Group Inc.
+    600519.SS: Kweichow Moutai Co., Ltd.
+    601318.SS: Ping An Insurance (Group) Company of China, Ltd.
+    600036.SS: China Merchants Bank Co., Ltd.
+    601166.SS: Industrial Bank Co., Ltd.
+    600276.SS: Jiangsu Hengrui Pharmaceuticals Co.,Ltd
+    600900.SS: China Yangtze Power Co., Ltd.
+    601012.SS: LONGi Green Energy Technology Co., Ltd.
+    600030.SS: CITIC Securities Company Limited
+    601888.SS: China Tourism Group Duty Free Corporation Limited
+    600887.SS: Inner Mongolia Yili Industrial Group Co., Ltd.
+    601398.SS: Industrial and Commercial Bank of China Limited
+    601939.SS: China Construction Bank Corporation
+    600809.SS: Shanxi Xinghuacun Fen Wine Factory Co.,Ltd.
+    600690.SS: Haier Smart Home Co., Ltd.
+    601288.SS: Agricultural Bank of China Limited
+    600031.SS: Sany Heavy Industry Co.,Ltd
+    600585.SS: Anhui Conch Cement Company Limited
+    601668.SS: China State Construction Engineering Corporation Limited
+    600050.SS: China United Network Communications Limited
+    603259.SS: WuXi AppTec Co., Ltd.
+    600309.SS: Wanhua Chemical Group Co., Ltd.
+    601857.SS: PetroChina Company Limited
+    600048.SS: Poly Developments and Holdings Group Co., Ltd.
+    601628.SS: China Life Insurance Company Limited
+    600000.SS: Shanghai Pudong Development Bank Co., Ltd.
+    601601.SS: China Pacific Insurance (Group) Co., Ltd.
+    601688.SS: Huatai Securities Co., Ltd.
+    600104.SS: SAIC Motor Corporation Limited
+    600196.SS: Shanghai Fosun Pharmaceutical (Group) Co., Ltd.
+    600436.SS: Zhangzhou Pientzehuang Pharmaceutical., Ltd
+    601899.SS: Zijin Mining Group Company Limited
+    600570.SS: Hundsun Technologies Inc.
+    601225.SS: Shaanxi Coal Industry Company Limited
+    600763.SS: Topchoice Medical Co., Inc.
+    601816.SS: Beijing-Shanghai High-Speed Railway Co., Ltd.
+    603288.SS: Foshan Haitian Flavouring and Food Company Ltd.
+    600089.SS: TBEA Co., Ltd.
+    601066.SS: CSC Financial Co., Ltd.
+    600588.SS: Yonyou Network Technology Co.,Ltd.
+    600346.SS: Hengli Petrochemical Co.,Ltd.
+    600019.SS: Baoshan Iron & Steel Co., Ltd.
+    601669.SS: Power Construction Corporation of China, Ltd
+    600406.SS: NARI Technology Co., Ltd.
+    600009.SS: Shanghai International Airport Co., Ltd.
+    601111.SS: Air China Limited
+    601390.SS: China Railway Group Limited
+    600023.SS: Zhejiang Zheneng Electric Power Co., Ltd.
+    601633.SS: Great Wall Motor Company Limited
+    601138.SS: Foxconn Industrial Internet Co., Ltd.
+    601985.SS: China National Nuclear Power Co., Ltd.
+    600132.SS: Chongqing Brewery Co., Ltd.
+    600893.SS: AECC Aviation Power Co.,Ltd
+    600061.SS: SDIC Capital Co.,Ltd
+    601766.SS: CRRC Corporation Limited
+    600745.SS: Wingtech Technology Co.,Ltd
+    600150.SS: China CSSC Holdings Limited
+    600010.SS: Inner Mongolia Baotou Steel Union Co., Ltd.
+    601800.SS: China Communications Construction Company Limited
+    600029.SS: China Southern Airlines Company Limited
+    600028.SS: China Petroleum & Chemical Corporation
+    601088.SS: China Shenhua Energy Company Limited
+    601186.SS: China Railway Construction Corporation Limited
+    601328.SS: Bank of Communications Co., Ltd.
+    600018.SS: Shanghai International Port (Group) Co., Ltd.
+    600741.SS: HUAYU Automotive Systems Company Limited
+    600660.SS: Fuyao Glass Industry Group Co., Ltd.
+    601919.SS: COSCO SHIPPING Holdings Co., Ltd.
+    600176.SS: China Jushi Co., Ltd.
+    601728.SS: China Telecom Corporation Limited
+    601236.SS: Hongta Securities Co., Ltd.
+    600438.SS: Tongwei Co.,Ltd
+    601006.SS: Daqin Railway Co., Ltd.
+    600426.SS: Shandong Hualu-Hengsheng Chemical Co., Ltd.
+    601360.SS: 360 Security Technology Inc.
+    601211.SS: Guotai Haitong Securities Co., Ltd.
+    600372.SS: AVIC Airborne Systems Co., Ltd.
+    601877.SS: Zhejiang Chint Electrics Co., Ltd.
+    600332.SS: Guangzhou Baiyunshan Pharmaceutical Holdings Company Limited
+    000858.SZ: Wuliangye Yibin Co.,Ltd.
+    000333.SZ: Midea Group Co., Ltd.
+    300750.SZ: Contemporary Amperex Technology Co., Limited
+    002714.SZ: Muyuan Foods Co., Ltd.
+    000651.SZ: Gree Electric Appliances, Inc. of Zhuhai
+    002594.SZ: BYD Company Limited
+    000568.SZ: Luzhou Laojiao Co.,Ltd
+    002415.SZ: Hangzhou Hikvision Digital Technology Co., Ltd.
+    300059.SZ: East Money Information Co.,Ltd.
+    000725.SZ: BOE Technology Group Company Limited
+    002460.SZ: Ganfeng Lithium Group Co., Ltd.
+    000001.SZ: Ping An Bank Co., Ltd.
+    002304.SZ: Jiangsu Yanghe Distillery Co., Ltd.
+    000002.SZ: China Vanke Co., Ltd.
+    002352.SZ: S.F. Holding Co., Ltd.
+    000776.SZ: GF Securities Co., Ltd.
+    002230.SZ: iFLYTEK CO.,LTD
+    300015.SZ: Aier Eye Hospital Group Co., Ltd.
+    002475.SZ: Luxshare Precision Industry Co., Ltd.
+    000661.SZ: Changchun High-Tech Industry (Group) Co., Ltd.
+    002142.SZ: Bank of Ningbo Co., Ltd.
+    300760.SZ: Shenzhen Mindray Bio-Medical Electronics Co., Ltd.
+    002027.SZ: Focus Media Information Technology Co., Ltd.
+    000538.SZ: Yunnan Baiyao Group Co.,Ltd
+    300124.SZ: Shenzhen Inovance Technology Co.,Ltd
+    002371.SZ: NAURA Technology Group Co., Ltd.
+    000063.SZ: ZTE Corporation
+    002466.SZ: Tianqi Lithium Corporation
+    002032.SZ: Zhejiang Supor Co., Ltd.
+    000100.SZ: TCL Technology Group Corporation
+    300274.SZ: Sungrow Power Supply Co., Ltd.
+    002601.SZ: LB Group Co., Ltd.
+    000596.SZ: Anhui Gujing Distillery Co., Ltd.
+    002241.SZ: Goertek Inc.
+    300033.SZ: Hithink RoyalFlush Information Network Co., Ltd.
+    002049.SZ: Unigroup Guoxin Microelectronics Co., Ltd.
+    300408.SZ: Chaozhou Three-Circle (Group) Co.,Ltd.
+    002311.SZ: Guangdong Haid Group Co., Limited
+    000799.SZ: Jiugui Liquor Co., Ltd.
+    002007.SZ: Hualan Biological Engineering Inc.
+    300496.SZ: Thunder Software Technology Co.,Ltd.
+    002050.SZ: Zhejiang Sanhua Intelligent Controls Co.,Ltd
+    300347.SZ: Hangzhou Tigermed Consulting Co., Ltd
+    002916.SZ: Shennan Circuits Co., Ltd.
+    000625.SZ: Chongqing Changan Automobile Company Limited
+    002812.SZ: Yunnan Energy New Material (Group) Co., Ltd.
+    300122.SZ: Chongqing Zhifei Biological Products Co., Ltd.
+    002179.SZ: Jonhon Optronic Technology Co., Ltd.
+    000069.SZ: Shenzhen Overseas Chinese Town Co.,Ltd.
+    002129.SZ: TCL Zhonghuan Renewable Energy Technology Co.,Ltd.
+    002405.SZ: SeeWay.ai Co., Ltd.
+    000887.SZ: Anhui Zhongding Sealing Parts Co., Ltd.
+    300661.SZ: SG Micro Corp
+    002648.SZ: Satellite Chemical Co.,Ltd.
+    002180.SZ: Ninestar Corporation
+    300014.SZ: EVE Energy Co., Ltd.
+    300413.SZ: Mango Excellent Media Co., Ltd.
+    000338.SZ: Weichai Power Co., Ltd.
+    002353.SZ: Yantai Jereh Oilfield Services Group Co., Ltd.
+    300529.SZ: Jafron Biomedical Co.,Ltd.
+    002709.SZ: Guangzhou Tinci Materials Technology Co., Ltd.
+    000423.SZ: Dong-E-E-Jiao Co.,Ltd.
+    002410.SZ: Glodon Company Limited
+    000157.SZ: Zoomlion Heavy Industry Science and Technology Co., Ltd.
+    002624.SZ: Perfect World Co., Ltd.
+    002459.SZ: JA Solar Technology Co., Ltd.
+    300763.SZ: Ginlong Technologies Co., Ltd.
+    002493.SZ: Rongsheng Petrochemical Co., Ltd.
+    300316.SZ: Zhejiang Jingsheng Mechanical & Electrical Co., Ltd.
+    002511.SZ: C&S Paper Co.,Ltd
+    000860.SZ: Beijing Shunxin Agriculture Co.,Ltd
+    300782.SZ: Maxscend Microelectronics Company Limited
+    002236.SZ: Zhejiang Dahua Technology Co., Ltd.
+    300999.SZ: Yihai Kerry Arawana Holdings Co., Ltd
+    600583.SS: Offshore Oil Engineering Co.,Ltd
+    600547.SS: Shandong Gold Mining Co., Ltd.
+    600111.SS: China Northern Rare Earth (Group) High-Tech Co.,Ltd
+    600362.SS: Jiangxi Copper Company Limited
+    600085.SS: Beijing Tongrentang Co., Ltd
+    601998.SS: China CITIC Bank Corporation Limited
+    600016.SS: China Minsheng Banking Corp., Ltd.
+    600795.SS: GD Power Development Co.,Ltd
+    600703.SS: Sanan Optoelectronics Co.,Ltd
+    600600.SS: Tsingtao Brewery Company Limited
+    600383.SS: Gemdale Corporation
+    600732.SS: Shanghai Aiko Solar Energy Co.,Ltd.
+    600298.SS: Angel Yeast Co., Ltd
+    601021.SS: Spring Airlines Co., Ltd.
+    600584.SS: JCET Group Co., Ltd.
+    600760.SS: AVIC Shenyang Aircraft Company Limited
+    600271.SS: Aisino Co.Ltd.
+    600522.SS: Jiangsu Zhongtian Technology Co., Ltd.
+    601117.SS: China National Chemical Engineering Co., Ltd
+    600489.SS: Zhongjin Gold Corp.,Ltd
+    600188.SS: Yankuang Energy Group Company Limited
+    000768.SZ: AVIC Xi'an Aircraft Industry Group Company Ltd.
+    000876.SZ: New Hope Liuhe Co.,Ltd.
+    300628.SZ: Yealink Network Technology Co., Ltd.
+    300253.SZ: Winning Health Technology Group Co., Ltd.
+    002555.SZ: 37 Interactive Entertainment Network Technology Group Co., Ltd.
+    300223.SZ: Ingenic Semiconductor Co.,Ltd.
+    002572.SZ: Suofeiya Home Collection Co., Ltd.
+    002271.SZ: Beijing Oriental Yuhong Waterproof Technology Co., Ltd.
+    300498.SZ: Wens Foodstuff Group Co., Ltd.
+    300308.SZ: Zhongji Innolight Co., Ltd.
+    002456.SZ: OFILM Group Co., Ltd.
+    300136.SZ: Shenzhen Sunway Communication Co., Ltd.
+    002508.SZ: Hangzhou Robam Appliances Co., Ltd.
+    300383.SZ: Beijing Sinnet Technology Co.,Ltd
+    002385.SZ: Beijing Dabeinong Technology Group Co.,Ltd.
+    300285.SZ: Shandong Sinocera Functional Material Co., Ltd.
+    002008.SZ: Han's Laser Technology Industry Group Co., Ltd.
+    000977.SZ: Inspur Electronic Information Industry Co., Ltd.
+    002025.SZ: Guizhou Space Appliance Co., LTD
+    300188.SZ: SDIC Intelligence Information Technology Co., Ltd.
+    000895.SZ: Henan Shuanghui Investment & Development Co.,Ltd.
+    002120.SZ: Yunda Holding Group Co., Ltd.
+    002756.SZ: Yongxing Special Materials Technology Co.,Ltd
+    300003.SZ: Lepu Medical Technology (Beijing) Co., Ltd.
+    002607.SZ: Offcn Education Technology Co., Ltd.
+    300070.SZ: Beijing Originwater Technology Co., Ltd.
+    002001.SZ: Zhejiang NHU Company Ltd.
+    002138.SZ: Shenzhen Sunlord Electronics Co.,Ltd.
+    002065.SZ: DHC Software Co.,Ltd.
+    600399.SS: Fushun Special Steel Co.,LTD.
+    600256.SS: Guanghui Energy Co., Ltd.
+    601108.SS: Caitong Securities Co.,Ltd.
+    601555.SS: Soochow Securities Co., Ltd.
+    600958.SS: Orient Securities Company Limited
+    601878.SS: Zheshang Securities Co., Ltd.
+    601127.SS: Seres Group Co.,Ltd
+    600380.SS: Joincare Pharmaceutical Group Industry Co.,Ltd.
+    603986.SS: GigaDevice Semiconductor Inc.
+    603501.SS: OmniVision Integrated Circuits Group, Inc.
+    603799.SS: Zhejiang Huayou Cobalt Co., Ltd
+    603160.SS: Shenzhen Goodix Technology Co., Ltd.
+    603833.SS: Oppein Home Group Inc.
+    603369.SS: Jiangsu King's Luck Brewery Joint-Stock Co.,Ltd.
+    688981.SS: Semiconductor Manufacturing International Corporation
+    688396.SS: China Resources Microelectronics Limited
+    688561.SS: Qi An Xin Technology Group Inc.
+    688012.SS: Advanced Micro-Fabrication Equipment Inc. China
+    688036.SS: Shenzhen Transsion Holdings Co., Ltd.
+    688111.SS: Beijing Kingsoft Office Software, Inc.
+    688599.SS: Trina Solar Co., Ltd.
+    688169.SS: Beijing Roborock Technology Co., Ltd.
+    688005.SS: Ningbo Ronbay New Energy Technology Co.,Ltd.
+    601615.SS: Ming Yang Smart Energy Group Limited
+    600499.SS: Keda Industrial Group Co., Ltd.
+    600733.SS: BAIC BluePark New Energy Technology Co., Ltd.
+    002223.SZ: Jiangsu Yuyue Medical Equipment & Supply Co., Ltd.
+    002939.SZ: China Great Wall Securities Co.,Ltd.
+    300433.SZ: Lens Technology Co., Ltd.
+    300618.SZ: Nanjing Hanrui Cobalt Co.,Ltd.
+  finland_100:
+    NOKIA.HE: Nokia Oyj
+    FORTUM.HE: Fortum Oyj
+    NESTE.HE: Neste Oyj
+    UPM.HE: UPM-Kymmene Oyj
+    STERV.HE: Stora Enso Oyj
+    SAMPO.HE: Sampo Oyj
+    KNEBV.HE: KONE Oyj
+    ELISA.HE: Elisa Oyj
+    WRT1V.HE: Wärtsilä Oyj Abp
+    KESKOB.HE: Kesko Oyj
+    OUT1V.HE: Outokumpu Oyj
+    METSO.HE: Metso Oyj
+    ORNBV.HE: Orion Oyj
+    TIETO.HE: TietoEVRY Oyj
+    METSB.HE: Metsä Board Oyj
+    VALMT.HE: Valmet Oyj
+    HUH1V.HE: Huhtamäki Oyj
+    KEMIRA.HE: Kemira Oyj
+    TYRES.HE: Nokian Renkaat Oyj
+    KCR.HE: Konecranes Plc
+    ALMA.HE: Alma Media Oyj
+    CTY1S.HE: Citycon Oyj
+    TELIA1.HE: Telia Company AB (publ)
+    YIT.HE: YIT Oyj
+    SSABBH.HE: SSAB AB (publ)
+    BITTI.HE: Bittium Oyj
+    PUUILO.HE: Puuilo Oyj
+    TLT1V.HE: Teleste Oyj
+    TOKMAN.HE: Tokmanni Group Oyj
+    HARVIA.HE: Harvia Oyj
+    QTCOM.HE: Qt Group Oyj
+    MEKKO.HE: Marimekko Oyj
+    REMEDY.HE: Remedy Entertainment Oyj
+    REG1V.HE: Revenio Group Oyj
+    SSH1V.HE: SSH Communications Security Oyj
+    DIGIA.HE: Digia Oyj
+    GOFORE.HE: Gofore Oyj
+    ICP1V.HE: Incap Oyj
+    SOLTEQ.HE: Solteq Oyj
+    SIILI.HE: Siili Solutions Oyj
+    DETEC.HE: Detection Technology Oyj
+    FSECURE.HE: F-Secure Oyj
+    LEHTO.HE: Lehto Group Oyj
+    MUSTI.HE: Musti Group Oyj
+    ORTHEX.HE: Orthex Oyj
+    KAMUX.HE: Kamux Oyj
+    NOHO.HE: NoHo Partners Oyj
+    OLVAS.HE: Olvi Oyj
+    TRH1V.HE: Trainers' House Oyj
+    OPTOMED.HE: Optomed Oyj
+    TITAN.HE: Titanium Oyj
+    ROBIT.HE: Robit Oyj
+    UNITED.HE: United Bankers Oyj
+    ADMCM.HE: Admicom Oyj
+    ENENTO.HE: Enento Group Oyj
+    AALLON.HE: Aallon Group Oyj
+    SANOMA.HE: Sanoma Oyj
+    RAUTE.HE: Raute Oyj
+    ASPO.HE: Aspo Oyj
+    APETIT.HE: Apetit Oyj
+    PON1V.HE: Ponsse Oyj
+    REKA.HE: Reka Industrial Oyj
+    EXL1V.HE: Exel Composites Oyj
+    BETOLAR.HE: Betolar Oyj
+    VINCIT.HE: Vincit Oyj
+    KREATE.HE: Kreate Group Oyj
+    CONSTI.HE: Consti Oyj
+    CAPMAN.HE: CapMan Oyj
+    PIHLIS.HE: Pihlajalinna Oyj
+    SRV1V.HE: SRV Yhtiöt Oyj
+    SAGCV.HE: Saga Furs Oyj
+    INVEST.HE: Investors House Oyj
+    FSKRS.HE: Fiskars Oyj Abp
+    WETTERI.HE: Wetteri Oyj
+    SCANFL.HE: Scanfil Oyj
+    TULAV.HE: Tulikivi Corporation
+    NXTMH.HE: Nexstim Plc
+    BIOBV.HE: Biohit Oyj
+    TNOM.HE: Talenom Oyj
+    EEZY.HE: Eezy Oyj
+    TTALO.HE: Terveystalo Oyj
+    PAMPALO.HE: Endomines Finland Oyj
+    ELEAV.HE: Elecster Oyj
+    HONBS.HE: Honkarakenne Oyj
+  europe_300:
+    SHEL.L: Shell plc
+    AZN.L: AstraZeneca PLC
+    HSBA.L: HSBC Holdings plc
+    ULVR.L: Unilever PLC
+    BP.L: BP p.l.c.
+    RIO.L: Rio Tinto Group
+    GSK.L: GSK plc
+    DGE.L: Diageo plc
+    LSEG.L: London Stock Exchange Group plc
+    BATS.L: British American Tobacco p.l.c.
+    REL.L: RELX PLC
+    RKT.L: Reckitt Benckiser Group plc
+    CPG.L: Compass Group PLC
+    NG.L: National Grid plc
+    LLOY.L: Lloyds Banking Group plc
+    BARC.L: Barclays PLC
+    VOD.L: Vodafone Group Public Limited Company
+    PRU.L: Prudential plc
+    AAL.L: Anglo American plc
+    STAN.L: Standard Chartered PLC
+    ABF.L: Associated British Foods plc
+    AHT.L: Ashtead Group plc
+    ANTO.L: Antofagasta plc
+    AUTO.L: Autotrader Group plc
+    AV.L: Aviva plc
+    BA.L: BAE Systems plc
+    BKG.L: The Berkeley Group Holdings plc
+    BNZL.L: Bunzl plc
+    BRBY.L: Burberry Group plc
+    BT-A.L: BT Group plc
+    CCH.L: Coca-Cola HBC AG
+    CRH.L: CRH plc
+    CRDA.L: Croda International Plc
+    DCC.L: DCC plc
+    EXPN.L: Experian plc
+    FLTR.L: Flutter Entertainment plc
+    GLEN.L: Glencore plc
+    HLMA.L: Halma plc
+    III.L: 3i Group Ord
+    IMB.L: Imperial Brands PLC
+    INF.L: Informa plc
+    ITRK.L: Intertek Group plc
+    JD.L: JD Sports Fashion Plc
+    KGF.L: Kingfisher plc
+    LAND.L: Land Securities Group Plc
+    LGEN.L: Legal & General Group Plc
+    MNDI.L: Mondi plc
+    NWG.L: NatWest Group plc
+    PSON.L: Pearson plc
+    PSN.L: Persimmon Plc
+    RR.L: Rolls-Royce Holdings plc
+    RTO.L: Rentokil Initial plc
+    SBRY.L: J Sainsbury plc
+    SDR.L: Schroders plc
+    SGE.L: The Sage Group plc
+    SGRO.L: SEGRO Plc
+    SKG.L: Smurfit Westrock Plc
+    SMIN.L: Smiths Group plc
+    SMT.L: Scottish Mortgage Ord
+    SN.L: Smith & Nephew plc
+    SPX.L: Spirax Group plc
+    SSE.L: SSE plc
+    SVT.L: Severn Trent PLC
+    TSCO.L: Tesco PLC
+    TW.L: Taylor Wimpey plc
+    WEIR.L: The Weir Group PLC
+    WPP.L: WPP plc
+    WTB.L: Whitbread plc
+    MC.PA: LVMH Moët Hennessy - Louis Vuitton, Société Européenne
+    OR.PA: L'Oréal S.A.
+    TTE.PA: TotalEnergies SE
+    SAN.PA: Sanofi
+    AI.PA: L'Air Liquide S.A.
+    SU.PA: Schneider Electric S.E.
+    BN.PA: Danone S.A.
+    CS.PA: AXA SA
+    RI.PA: Pernod Ricard SA
+    KER.PA: Kering SA
+    SAF.PA: Safran SA
+    DG.PA: Vinci SA
+    CAP.PA: Capgemini SE
+    BNP.PA: BNP Paribas SA
+    GLE.PA: Société Générale Société anonyme
+    CA.PA: Carrefour SA
+    VIE.PA: Veolia Environnement SA
+    EN.PA: Bouygues SA
+    SGO.PA: Compagnie de Saint-Gobain S.A.
+    ML.PA: Compagnie Générale des Établissements Michelin Société en commandite par actions
+    RMS.PA: Hermès International Société en commandite par actions
+    DSY.PA: Dassault Systèmes SE
+    EL.PA: EssilorLuxottica Société anonyme
+    PUB.PA: Publicis Groupe S.A.
+    ERF.PA: Eurofins Scientific SE
+    HO.PA: Thales S.A.
+    LR.PA: Legrand SA
+    ORA.PA: Orange S.A.
+    VIV.PA: Vivendi SE
+    ACA.PA: Crédit Agricole S.A.
+    SAP.DE: SAP SE
+    SIE.DE: Siemens Aktiengesellschaft
+    ALV.DE: Allianz SE
+    DTE.DE: Deutsche Telekom AG
+    MBG.DE: Mercedes-Benz Group AG
+    BMW.DE: Bayerische Motoren Werke Aktiengesellschaft
+    BAS.DE: BASF SE
+    MRK.DE: Merck KGaA
+    IFX.DE: Infineon Technologies AG
+    ADS.DE: adidas AG
+    VOW3.DE: Volkswagen AG
+    MUV2.DE: Münchener Rückversicherungs-Gesellschaft Aktiengesellschaft in München
+    DB1.DE: Deutsche Börse AG
+    HEN3.DE: Henkel AG & Co. KGaA
+    BEI.DE: Beiersdorf Aktiengesellschaft
+    FRE.DE: Fresenius SE & Co. KGaA
+    RWE.DE: RWE Aktiengesellschaft
+    HEI.DE: Heidelberg Materials AG
+    CON.DE: Continental Aktiengesellschaft
+    ZAL.DE: Zalando SE
+    SY1.DE: Symrise AG
+    EOAN.DE: E.ON SE
+    PUM.DE: PUMA SE
+    DTG.DE: Daimler Truck Holding AG
+    AIR.DE: Airbus SE
+    SHL.DE: Siemens Healthineers AG
+    ENR.DE: Siemens Energy AG
+    MTX.DE: MTU Aero Engines AG
+    QIA.DE: Qiagen N.V.
+    NESN.SW: Nestlé S.A.
+    ROG.SW: Roche Holding AG
+    NOVN.SW: Novartis AG
+    ZURN.SW: Zurich Insurance Group AG
+    ABBN.SW: ABB Ltd
+    UBSG.SW: UBS Group AG
+    GIVN.SW: Givaudan SA
+    SGSN.SW: SGS SA
+    LONN.SW: Lonza Group AG
+    GEBN.SW: Geberit AG
+    SREN.SW: Swiss Re AG
+    SCMN.SW: Swisscom AG
+    SLHN.SW: Swiss Life Holding AG
+    BAER.SW: Julius Bär Gruppe AG
+    HOLN.SW: Holcim AG
+    SIKA.SW: Sika AG
+    PGHN.SW: Partners Group Holding AG
+    STMN.SW: Straumann Holding AG
+    TEMN.SW: Temenos AG
+    ASML.AS: ASML Holding N.V.
+    INGA.AS: ING Groep N.V.
+    UNA.AS: Unilever PLC
+    PHIA.AS: Koninklijke Philips N.V.
+    AD.AS: Koninklijke Ahold Delhaize N.V.
+    WKL.AS: Wolters Kluwer N.V.
+    ASM.AS: ASM International NV
+    AKZA.AS: Akzo Nobel N.V.
+    HEIA.AS: Heineken N.V.
+    AGN.AS: Aegon Ltd.
+    KPN.AS: Koninklijke KPN N.V.
+    NN.AS: NN Group N.V.
+    RAND.AS: Randstad N.V.
+    SAN.MC: Banco Santander, S.A.
+    IBE.MC: Iberdrola, S.A.
+    ITX.MC: Industria de Diseño Textil, S.A.
+    TEF.MC: Telefónica, S.A.
+    BBVA.MC: Banco Bilbao Vizcaya Argentaria, S.A.
+    REP.MC: Repsol, S.A.
+    CABK.MC: CaixaBank, S.A.
+    AMS.MC: Amadeus IT Group, S.A.
+    FER.MC: Ferrovial SE
+    ENG.MC: Enagás, S.A.
+    GRF.MC: Grifols, S.A.
+    RED.MC: Redeia Corporación, S.A.
+    ENI.MI: Eni S.p.A.
+    ISP.MI: Intesa Sanpaolo S.p.A.
+    ENEL.MI: Enel SpA
+    UCG.MI: UniCredit S.p.A.
+    G.MI: Assicurazioni Generali S.p.A.
+    RACE.MI: Ferrari N.V.
+    TEN.MI: Tenaris S.A.
+    TIT.MI: Telecom Italia S.p.A.
+    PRY.MI: Prysmian S.p.A.
+    PST.MI: Poste Italiane S.p.A.
+    VOLV-B.ST: AB Volvo (publ)
+    ATCO-A.ST: Atlas Copco AB (publ)
+    ERIC-B.ST: Telefonaktiebolaget LM Ericsson (publ)
+    SAND.ST: Sandvik AB (publ)
+    ABB.ST: ABB Ltd
+    HEXA-B.ST: Hexagon AB (publ)
+    ALFA.ST: Alfa Laval AB (publ)
+    ASSA-B.ST: ASSA ABLOY AB (publ)
+    ESSITY-B.ST: Essity AB (publ)
+    SEB-A.ST: Skandinaviska Enskilda Banken AB (publ)
+    SWED-A.ST: Swedbank AB (publ)
+    SHB-A.ST: Svenska Handelsbanken AB (publ)
+    SKF-B.ST: AB SKF (publ)
+    ELUX-B.ST: AB Electrolux (publ)
+    TEL2-B.ST: Tele2 AB (publ)
+    INVE-B.ST: Investor AB (publ)
+    EVO.ST: Evolution AB (publ)
+    HM-B.ST: H & M Hennes & Mauritz AB (publ)
+    NOVO-B.CO: Novo Nordisk A/S
+    MAERSK-B.CO: A.P. Møller - Mærsk A/S
+    CARL-B.CO: Carlsberg A/S
+    DSV.CO: DSV A/S
+    VWS.CO: Vestas Wind Systems A/S
+    COLO-B.CO: Coloplast A/S
+    ORSTED.CO: Ørsted A/S
+    PNDORA.CO: Pandora A/S
+    DEMANT.CO: Demant A/S
+    GN.CO: GN Store Nord A/S
+    FLS.CO: FLSmidth & Co. A/S
+    EQNR.OL: Equinor ASA
+    DNB.OL: DNB Bank ASA
+    TEL.OL: Telenor ASA
+    MOWI.OL: Mowi ASA
+    ORK.OL: Orkla ASA
+    YAR.OL: Yara International ASA
+    SALM.OL: SalMar ASA
+    AKER.OL: Aker ASA
+    AKRBP.OL: Aker BP ASA
+    TOM.OL: Tomra Systems ASA
+    GJF.OL: Gjensidige Forsikring ASA
+    ABI.BR: Anheuser-Busch InBev SA/NV
+    UCB.BR: UCB SA
+    SOLB.BR: Solvay SA
+    KBC.BR: KBC Group NV
+    COLR.BR: Colruyt Group N.V.
+    UMI.BR: Umicore SA
+    AGS.BR: ageas SA/NV
+    CRH: CRH plc
+    ARGX: argenx SE
+    ASML: ASML Holding N.V.
+    NVO: Novo Nordisk A/S
+    AZN: AstraZeneca PLC
+    SHEL: Shell plc
+    TTE: TotalEnergies SE
+    LUND-B.ST: L E Lundbergföretagen AB (publ)
+    NIBE-B.ST: NIBE Industrier AB (publ)
+    KINV-B.ST: Kinnevik AB
+    GETI-B.ST: Getinge AB (publ)
+    TREL-B.ST: Trelleborg AB (publ)
+    HUSQ-B.ST: Husqvarna AB (publ)
+    BILL.ST: Billerud AB (publ)
+    BOL.ST: Boliden AB (publ)
+    SAAB-B.ST: Saab AB (publ)
+    LIFCO-B.ST: Lifco AB (publ)
+    BALD-B.ST: Fastighets AB Balder (publ)
+    SINCH.ST: Sinch AB (publ)
+    MTRS.ST: Munters Group AB (publ)
+    TRYG.CO: Tryg A/S
+    RBREW.CO: Royal Unibrew A/S
+    AMBU-B.CO: Ambu A/S
+    ROCK-B.CO: Rockwool A/S
+    GMAB.CO: Genmab A/S
+    BAVA.CO: Bavarian Nordic A/S
+    JYSK.CO: Jyske Bank A/S
+    SCHO.CO: Aktieselskabet Schouw & Co.
+    NHY.OL: Norsk Hydro ASA
+    STB.OL: Storebrand ASA
+    RECSI.OL: REC Silicon ASA
+    KOG.OL: Kongsberg Gruppen ASA
+    SUBC.OL: Subsea 7 S.A.
+    BWO.OL: BW Offshore Limited
+    BAKKA.OL: P/F Bakkafrost
+    VPK.AS: Koninklijke Vopak N.V.
+    BESI.AS: BE Semiconductor Industries N.V.
+    IMCD.AS: IMCD N.V.
+    LIGHT.AS: Signify N.V.
+    SBMO.AS: SBM Offshore N.V.
+    OCI.AS: OCI N.V.
+    AALB.AS: Aalberts N.V.
+    FUR.AS: Fugro N.V.
+    APAM.AS: Aperam S.A.
+    BAMI.MI: Banco BPM S.p.A.
+    SRG.MI: Snam S.p.A.
+    A2A.MI: A2A S.p.A.
+    HER.MI: Hera S.p.A.
+    DIA.MI: DiaSorin S.p.A.
+    AMP.MI: Amplifon S.p.A.
+    IPG.MI: Salini Impregilo S.p.A.
+    SFER.MI: Salvatore Ferragamo S.p.A.
+    VIS.MC: Viscofan, S.A.
+    ACS.MC: ACS, Actividades de Construcción y Servicios, S.A.
+    MAP.MC: Mapfre, S.A.
+    CLNX.MC: Cellnex Telecom, S.A.
+    LOG.MC: Logista Integral, S.A.
+    MTS.MC: ArcelorMittal S.A.
+  global_500:
+    AAPL: Apple Inc.
+    MSFT: Microsoft Corporation
+    AMZN: Amazon.com, Inc.
+    NVDA: NVIDIA Corporation
+    GOOGL: Alphabet Inc.
+    META: Meta Platforms, Inc.
+    BRK-B: Berkshire Hathaway Inc.
+    LLY: Eli Lilly and Company
+    UNH: UnitedHealth Group Incorporated
+    JPM: JPMorgan Chase & Co.
+    V: Visa Inc.
+    XOM: Exxon Mobil Corporation
+    AVGO: Broadcom Inc.
+    MA: Mastercard Incorporated
+    JNJ: Johnson & Johnson
+    PG: The Procter & Gamble Company
+    HD: The Home Depot, Inc.
+    COST: Costco Wholesale Corporation
+    MRK: Merck & Co., Inc.
+    ABBV: AbbVie Inc.
+    ORCL: Oracle Corporation
+    CRM: Salesforce, Inc.
+    AMD: Advanced Micro Devices, Inc.
+    NFLX: Netflix, Inc.
+    WMT: Walmart Inc.
+    PEP: PepsiCo, Inc.
+    KO: The Coca-Cola Company
+    TMO: Thermo Fisher Scientific Inc.
+    ACN: Accenture plc
+    CSCO: Cisco Systems, Inc.
+    LIN: Linde plc
+    ABT: Abbott Laboratories
+    MCD: McDonald's Corporation
+    ADBE: Adobe Inc.
+    WFC: Wells Fargo & Company
+    DHR: Danaher Corporation
+    TXN: Texas Instruments Incorporated
+    PM: Philip Morris International Inc.
+    DIS: The Walt Disney Company
+    NEE: NextEra Energy, Inc.
+    BMY: Bristol-Myers Squibb Company
+    RTX: RTX Corporation
+    UNP: Union Pacific Corporation
+    QCOM: QUALCOMM Incorporated
+    INTU: Intuit Inc.
+    CAT: Caterpillar Inc.
+    AMGN: Amgen Inc.
+    T: AT&T Inc.
+    GS: The Goldman Sachs Group, Inc.
+    HON: Honeywell International Inc.
+    DE: Deere & Company
+    BA: The Boeing Company
+    MS: Morgan Stanley
+    ISRG: Intuitive Surgical, Inc.
+    IBM: International Business Machines Corporation
+    AXP: American Express Company
+    LOW: Lowe's Companies, Inc.
+    BKNG: Booking Holdings Inc.
+    GE: GE Aerospace
+    BLK: BlackRock, Inc.
+    SYK: Stryker Corporation
+    MDLZ: Mondelez International, Inc.
+    ELV: Elevance Health, Inc.
+    VRTX: Vertex Pharmaceuticals Incorporated
+    ADP: Automatic Data Processing, Inc.
+    CI: The Cigna Group
+    GILD: Gilead Sciences, Inc.
+    REGN: Regeneron Pharmaceuticals, Inc.
+    ADI: Analog Devices, Inc.
+    SLB: SLB N.V.
+    LRCX: Lam Research Corporation
+    TJX: The TJX Companies, Inc.
+    PLD: Prologis, Inc.
+    CVS: CVS Health Corporation
+    MMC: Marsh & McLennan Companies, Inc.
+    TMUS: T-Mobile US, Inc.
+    SCHW: The Charles Schwab Corporation
+    CME: CME Group Inc.
+    ANET: Arista Networks, Inc.
+    BSX: Boston Scientific Corporation
+    BDX: Becton, Dickinson and Company
+    PGR: The Progressive Corporation
+    MU: Micron Technology, Inc.
+    ETN: Eaton Corporation plc
+    SNPS: Synopsys, Inc.
+    KLAC: KLA Corporation
+    ICE: Intercontinental Exchange, Inc.
+    SHW: The Sherwin-Williams Company
+    PYPL: PayPal Holdings, Inc.
+    CDNS: Cadence Design Systems, Inc.
+    MCK: McKesson Corporation
+    MPC: Marathon Petroleum Corporation
+    CL: Colgate-Palmolive Company
+    FDX: FedEx Corporation
+    UBER: Uber Technologies, Inc.
+    ABNB: Airbnb, Inc.
+    PANW: Palo Alto Networks, Inc.
+    CRWD: CrowdStrike Holdings, Inc.
+    PLTR: Palantir Technologies Inc.
+    SHOP: Shopify Inc.
+    MELI: MercadoLibre, Inc.
+    ARM: Arm Holdings plc
+    APP: AppLovin Corporation
+    SNOW: Snowflake Inc.
+    CMG: Chipotle Mexican Grill, Inc.
+    NSC: Norfolk Southern Corporation
+    ORLY: O'Reilly Automotive, Inc.
+    ROP: Roper Technologies, Inc.
+    AZO: AutoZone, Inc.
+    APD: Air Products and Chemicals, Inc.
+    AON: Aon plc
+    ITW: Illinois Tool Works Inc.
+    WM: Waste Management, Inc.
+    MAR: Marriott International, Inc.
+    EMR: Emerson Electric Co.
+    CTAS: Cintas Corporation
+    GD: General Dynamics Corporation
+    MSI: Motorola Solutions, Inc.
+    MCO: Moody's Corporation
+    COF: Capital One Financial Corporation
+    GM: General Motors Company
+    OXY: Occidental Petroleum Corporation
+    TT: Trane Technologies plc
+    CARR: Carrier Global Corporation
+    HCA: HCA Healthcare, Inc.
+    LULU: lululemon athletica inc.
+    true: ON Semiconductor Corp.
+    SMCI: Super Micro Computer, Inc.
+    VRT: Vertiv Holdings Co
+    DASH: DoorDash, Inc.
+    COIN: Coinbase Global, Inc.
+    DDOG: Datadog, Inc.
+    NET: Cloudflare, Inc.
+    MDB: MongoDB, Inc.
+    TEAM: Atlassian Corporation
+    WDAY: Workday, Inc.
+    VEEV: Veeva Systems Inc.
+    FSLR: First Solar, Inc.
+    ENPH: Enphase Energy, Inc.
+    NESN.SW: Nestlé S.A.
+    ROG.SW: Roche Holding AG
+    NOVN.SW: Novartis AG
+    MC.PA: LVMH Moët Hennessy - Louis Vuitton, Société Européenne
+    OR.PA: L'Oréal S.A.
+    RMS.PA: Hermès International Société en commandite par actions
+    ASML.AS: ASML Holding N.V.
+    NOVO-B.CO: Novo Nordisk A/S
+    SAP.DE: SAP SE
+    SIE.DE: Siemens Aktiengesellschaft
+    ALV.DE: Allianz SE
+    DTE.DE: Deutsche Telekom AG
+    AZN.L: AstraZeneca PLC
+    SHEL.L: Shell plc
+    HSBA.L: HSBC Holdings plc
+    ULVR.L: Unilever PLC
+    BP.L: BP p.l.c.
+    RIO.L: Rio Tinto Group
+    GSK.L: GSK plc
+    DGE.L: Diageo plc
+    TTE.PA: TotalEnergies SE
+    SAN.PA: Sanofi
+    AI.PA: L'Air Liquide S.A.
+    SU.PA: Schneider Electric S.E.
+    BNP.PA: BNP Paribas SA
+    ABBN.SW: ABB Ltd
+    UBSG.SW: UBS Group AG
+    MBG.DE: Mercedes-Benz Group AG
+    BMW.DE: Bayerische Motoren Werke Aktiengesellschaft
+    BAS.DE: BASF SE
+    IFX.DE: Infineon Technologies AG
+    ADS.DE: adidas AG
+    EQNR.OL: Equinor ASA
+    SAN.MC: Banco Santander, S.A.
+    IBE.MC: Iberdrola, S.A.
+    ITX.MC: Industria de Diseño Textil, S.A.
+    ENI.MI: Eni S.p.A.
+    RACE.MI: Ferrari N.V.
+    ISP.MI: Intesa Sanpaolo S.p.A.
+    ENEL.MI: Enel SpA
+    INGA.AS: ING Groep N.V.
+    ABI.BR: Anheuser-Busch InBev SA/NV
+    DSV.CO: DSV A/S
+    VOLV-B.ST: AB Volvo (publ)
+    ATCO-A.ST: Atlas Copco AB (publ)
+    EVO.ST: Evolution AB (publ)
+    NOKIA.HE: Nokia Oyj
+    NESTE.HE: Neste Oyj
+    SAMPO.HE: Sampo Oyj
+    7203.T: Toyota Motor Corporation
+    6758.T: Sony Group Corporation
+    6861.T: Keyence Corporation
+    6902.T: DENSO Corporation
+    9984.T: SoftBank Group Corp.
+    9432.T: NTT, Inc.
+    6501.T: Hitachi, Ltd.
+    8306.T: Mitsubishi UFJ Financial Group, Inc.
+    7741.T: HOYA Corporation
+    4063.T: Shin-Etsu Chemical Co., Ltd.
+    6098.T: Recruit Holdings Co., Ltd.
+    4519.T: Chugai Pharmaceutical Co., Ltd.
+    8035.T: Tokyo Electron Limited
+    7974.T: Nintendo Co., Ltd.
+    9433.T: KDDI Corporation
+    4502.T: Takeda Pharmaceutical Company Limited
+    6367.T: Daikin Industries,Ltd.
+    6594.T: Nidec Corporation
+    4568.T: Daiichi Sankyo Company, Limited
+    7267.T: Honda Motor Co., Ltd.
+    8058.T: Mitsubishi Corporation
+    8001.T: ITOCHU Corporation
+    8031.T: Mitsui & Co., Ltd.
+    6954.T: Fanuc Corporation
+    8316.T: Sumitomo Mitsui Financial Group, Inc.
+    3382.T: Seven & i Holdings Co., Ltd.
+    4661.T: Oriental Land Co., Ltd.
+    6981.T: Murata Manufacturing Co., Ltd.
+    4543.T: Terumo Corporation
+    6273.T: SMC Corporation
+    9983.T: Fast Retailing Co., Ltd.
+    6857.T: Advantest Corporation
+    2914.T: Japan Tobacco Inc.
+    0700.HK: Tencent Holdings Limited
+    9988.HK: Alibaba Group Holding Limited
+    3690.HK: Meituan
+    1211.HK: BYD Company Limited
+    0941.HK: China Mobile Limited
+    2318.HK: Ping An Insurance (Group) Company of China, Ltd.
+    0939.HK: China Construction Bank Corporation
+    1398.HK: Industrial and Commercial Bank of China Limited
+    0388.HK: Hong Kong Exchanges and Clearing Limited
+    1299.HK: AIA Group Limited
+    9618.HK: JD.com, Inc.
+    9888.HK: Baidu, Inc.
+    1810.HK: Xiaomi Corporation
+    0883.HK: CNOOC Limited
+    0857.HK: PetroChina Company Limited
+    1088.HK: China Shenhua Energy Company Limited
+    600519.SS: Kweichow Moutai Co., Ltd.
+    601318.SS: Ping An Insurance (Group) Company of China, Ltd.
+    300750.SZ: Contemporary Amperex Technology Co., Limited
+    000858.SZ: Wuliangye Yibin Co.,Ltd.
+    000333.SZ: Midea Group Co., Ltd.
+    600036.SS: China Merchants Bank Co., Ltd.
+    600900.SS: China Yangtze Power Co., Ltd.
+    601888.SS: China Tourism Group Duty Free Corporation Limited
+    002594.SZ: BYD Company Limited
+    005930.KS: Samsung Electronics Co., Ltd.
+    000660.KS: SK hynix Inc.
+    035420.KS: NAVER Corporation
+    207940.KS: Samsung Biologics Co.,Ltd.
+    005380.KS: Hyundai Motor Company
+    006400.KS: Samsung SDI Co., Ltd.
+    051910.KS: LG Chem, Ltd.
+    035720.KS: Kakao Corp.
+    068270.KS: Celltrion, Inc.
+    028260.KS: Samsung C&T Corporation
+    RELIANCE.NS: Reliance Industries Limited
+    TCS.NS: Tata Consultancy Services Limited
+    HDFCBANK.NS: HDFC Bank Limited
+    INFY.NS: Infosys Limited
+    ICICIBANK.NS: ICICI Bank Limited
+    HINDUNILVR.NS: Hindustan Unilever Limited
+    SBIN.NS: State Bank of India
+    BHARTIARTL.NS: Bharti Airtel Limited
+    ITC.NS: ITC Limited
+    KOTAKBANK.NS: Kotak Mahindra Bank Limited
+    LT.NS: Larsen & Toubro Limited
+    WIPRO.NS: Wipro Limited
+    HCLTECH.NS: HCL Technologies Limited
+    ASIANPAINT.NS: Asian Paints Limited
+    MARUTI.NS: Maruti Suzuki India Limited
+    TITAN.NS: Titan Company Limited
+    BAJFINANCE.NS: Bajaj Finance Limited
+    AXISBANK.NS: Axis Bank Limited
+    SUNPHARMA.NS: Sun Pharmaceutical Industries Limited
+    TSM: Taiwan Semiconductor Manufacturing Company Limited
+    2317.TW: Hon Hai Precision Industry Co., Ltd.
+    2330.TW: Taiwan Semiconductor Manufacturing Company Limited
+    2454.TW: MediaTek Inc.
+    2308.TW: Delta Electronics, Inc.
+    2412.TW: Chunghwa Telecom Co., Ltd.
+    1301.TW: Formosa Plastics Corporation
+    1303.TW: Nan Ya Plastics Corporation
+    2882.TW: Cathay Financial Holding Co., Ltd.
+    BHP.AX: BHP Group Limited
+    CBA.AX: Commonwealth Bank of Australia
+    CSL.AX: CSL Limited
+    NAB.AX: National Australia Bank Limited
+    WBC.AX: Westpac Banking Corporation
+    ANZ.AX: ANZ Group Holdings Limited
+    WES.AX: Wesfarmers Limited
+    MQG.AX: Macquarie Group Limited
+    FMG.AX: Fortescue Ltd
+    WOW.AX: Woolworths Group Limited
+    2222.SR: Saudi Arabian Oil Company
+    1180.SR: The Saudi National Bank
+    2010.SR: Saudi Basic Industries Corporation
+    VALE: Vale S.A.
+    PBR: Petróleo Brasileiro S.A. - Petrobras
+    ITUB: Itaú Unibanco Holding S.A.
+    NU: Nu Holdings Ltd.
+    RY.TO: Royal Bank of Canada
+    TD.TO: The Toronto-Dominion Bank
+    SHOP.TO: Shopify Inc.
+    ENB.TO: Enbridge Inc.
+    CNR.TO: Canadian National Railway Company
+    CP.TO: Canadian Pacific Kansas City Limited
+    BMO.TO: Bank of Montreal
+    BNS.TO: The Bank of Nova Scotia
+    SU.TO: Suncor Energy Inc.
+    MFC.TO: Manulife Financial Corporation
+    D05.SI: DBS Group Holdings Ltd
+    O39.SI: Oversea-Chinese Banking Corporation Limited
+    U11.SI: United Overseas Bank Limited
+    WALMEX.MX: Wal-Mart de México, S.A.B. de C.V.
+    FEMSAUBD.MX: Fomento Económico Mexicano, S.A.B. de C.V.
+    FCX: Freeport-McMoRan Inc.
+    PH: Parker-Hannifin Corporation
+    NXPI: NXP Semiconductors N.V.
+    PSX: Phillips 66
+    CCI: Crown Castle Inc.
+    AIG: American International Group, Inc.
+    PSA: Public Storage
+    WELL: Welltower Inc.
+    FTNT: Fortinet, Inc.
+    ADSK: Autodesk, Inc.
+    TEL: TE Connectivity plc
+    SRE: Sempra
+    MCHP: Microchip Technology Incorporated
+    CTVA: Corteva, Inc.
+    BK: The Bank of New York Mellon Corporation
+    KDP: Keurig Dr Pepper Inc.
+    AFL: Aflac Incorporated
+    SPG: Simon Property Group, Inc.
+    AMP: Ameriprise Financial, Inc.
+    RSG: Republic Services, Inc.
+    IDXX: IDEXX Laboratories, Inc.
+    LHX: L3Harris Technologies, Inc.
+    TDG: TransDigm Group Incorporated
+    AEP: American Electric Power Company, Inc.
+    MSCI: MSCI Inc.
+    CEG: Constellation Energy Corporation
+    DLR: Digital Realty Trust, Inc.
+    DHI: D.R. Horton, Inc.
+    CPRT: Copart, Inc.
+    TSCO: Tractor Supply Company
+    PWR: Quanta Services, Inc.
+    ACGL: Arch Capital Group Ltd.
+    MLM: Martin Marietta Materials, Inc.
+    AVB: AvalonBay Communities, Inc.
+    VICI: VICI Properties Inc.
+    DPZ: Domino's Pizza, Inc.
+    TTWO: Take-Two Interactive Software, Inc.
+    NDAQ: Nasdaq, Inc.
+    ULTA: Ulta Beauty, Inc.
+    GRMN: Garmin Ltd.
+    NVR: NVR, Inc.
+    ROST: Ross Stores, Inc.
+    EFX: Equifax Inc.
+    ODFL: Old Dominion Freight Line, Inc.
+    DOV: Dover Corporation
+    GEHC: GE HealthCare Technologies Inc.
+    MNST: Monster Beverage Corporation
+    KMI: Kinder Morgan, Inc.
+    GPC: Genuine Parts Company
+    NUE: Nucor Corporation
+    EL: The Estée Lauder Companies Inc.
+    WY: Weyerhaeuser Company
+    FITB: Fifth Third Bancorp
+    MTB: M&T Bank Corporation
+    HBAN: Huntington Bancshares Incorporated
+    PFG: Principal Financial Group, Inc.
+    CINF: Cincinnati Financial Corporation
+    TFC: Truist Financial Corporation
+    USB: U.S. Bancorp
+    PNC: The PNC Financial Services Group, Inc.
+    C: Citigroup Inc.
+    BAC: Bank of America Corporation
+    4911.T: Shiseido Company, Limited
+    6702.T: Fujitsu Limited
+    6503.T: Mitsubishi Electric Corporation
+    7751.T: Canon Inc.
+    4503.T: Astellas Pharma Inc.
+    4578.T: Otsuka Holdings Co., Ltd.
+    7201.T: Nissan Motor Co., Ltd.
+    8766.T: Tokio Marine Holdings, Inc.
+    8411.T: Mizuho Financial Group, Inc.
+    2802.T: Ajinomoto Co., Inc.
+    6752.T: Panasonic Holdings Corporation
+    8591.T: ORIX Corporation
+    7269.T: Suzuki Motor Corporation
+    4901.T: FUJIFILM Holdings Corporation
+    8053.T: Sumitomo Corporation
+    9020.T: East Japan Railway Company
+    9022.T: Central Japan Railway Company
+    4689.T: LY Corporation
+    6301.T: Komatsu Ltd.
+    6971.T: Kyocera Corporation
+    003550.KS: LG Corp.
+    034730.KS: SK Inc.
+    066570.KS: LG Electronics Inc.
+    055550.KS: Shinhan Financial Group Co., Ltd.
+    015760.KS: Korea Electric Power Corporation
+    086790.KS: Hana Financial Group Inc.
+    032830.KS: Samsung Life Insurance Co., Ltd.
+    009150.KS: Samsung Electro-Mechanics Co., Ltd.
+    012330.KS: Hyundai Mobis Co.,Ltd
+    018260.KS: Samsung SDS Co., Ltd.
+    ADANIENT.NS: Adani Enterprises Limited
+    ADANIPORTS.NS: Adani Ports and Special Economic Zone Limited
+    DRREDDY.NS: Dr. Reddy's Laboratories Limited
+    NESTLEIND.NS: Nestlé India Limited
+    ULTRACEMCO.NS: UltraTech Cement Limited
+    TECHM.NS: Tech Mahindra Limited
+    POWERGRID.NS: Power Grid Corporation of India Limited
+    NTPC.NS: NTPC Limited
+    ONGC.NS: Oil and Natural Gas Corporation Limited
+    COALINDIA.NS: Coal India Limited
+    ABI: VictoryShares Pioneer Asset-Based Inc ETF
+    RIO: Rio Tinto Group
+    BHP: BHP Group Limited
+    UL: Unilever PLC
+    DEO: Diageo plc
+    BTI: British American Tobacco p.l.c.
+    GSK: GSK plc
+    BP: BP p.l.c.
+    HSBC: HSBC Holdings plc
+    LYG: Lloyds Banking Group plc
+    BCS: Barclays PLC
+    NVS: Novartis AG
+    RHHBY: Roche Holding AG
+    UBS: UBS Group AG
+    SAP: SAP SE
+    SIEGY: Siemens Aktiengesellschaft
+    TM: Toyota Motor Corporation
+    SONY: Sony Group Corporation
+    HMC: Honda Motor Co., Ltd.
+    MUFG: Mitsubishi UFJ Financial Group, Inc.
+    SMFG: Sumitomo Mitsui Financial Group, Inc.
+    MFG: Mizuho Financial Group, Inc.
+    KB: KB Financial Group Inc.
+    SHG: Shinhan Financial Group Co., Ltd.
+    WIT: Wipro Limited
+    IBN: ICICI Bank Limited
+    HDB: HDFC Bank Limited
+    INFY: Infosys Limited
+    GRAB: Grab Holdings Limited
+    BEKE: KE Holdings Inc.
+    PDD: PDD Holdings Inc.
+    BIDU: Baidu, Inc.
+    JD: JD.com, Inc.
+    BABA: Alibaba Group Holding Limited
+    LI: Li Auto Inc.
+    XPEV: XPeng Inc.
+    NIO: NIO Inc.
+    ZTO: ZTO Express (Cayman) Inc.
+    YUMC: Yum China Holdings, Inc.
+    TCOM: Trip.com Group Limited
+    BILI: Bilibili Inc.
+    EDU: New Oriental Education & Technology Group Inc.
+    TAL: TAL Education Group
+    VIPS: Vipshop Holdings Limited
+    WB: Weibo Corporation
+    MNSO: MINISO Group Holding Limited
+    KC: Kingsoft Cloud Holdings Limited
+    ABBNY: ABB Ltd
+    IDEXY: Industria de Diseño Textil, S.A.
+    CPNG: Coupang, Inc.
+    SE: Sea Limited
+    SPOT: Spotify Technology S.A.
+    RACE: Ferrari N.V.
+    MRVL: Marvell Technology, Inc.
+    KEYS: Keysight Technologies, Inc.
+    TDY: Teledyne Technologies Incorporated
+    MPWR: Monolithic Power Systems, Inc.
+    MTCH: Match Group, Inc.
+    CHTR: Charter Communications, Inc.
+    CMCSA: Comcast Corporation
+    VZ: Verizon Communications Inc.
+    DELL: Dell Technologies Inc.
+    HPE: Hewlett Packard Enterprise Company
+    WDC: Western Digital Corporation
+    STX: Seagate Technology Holdings plc
+    CTSH: Cognizant Technology Solutions Corporation
+    IT: Gartner, Inc.
+    FIS: Fidelity National Information Services, Inc.
+    GPN: Global Payments Inc.
+    AJG: Arthur J. Gallagher & Co.
+    PKG: Packaging Corporation of America
+    AMCR: Amcor plc
+    IEX: IDEX Corporation
+    RBLX: Roblox Corporation
+    DUOL: Duolingo, Inc.

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import logging
-from typing import Any
 
 from newscollector.models import CollectionResult, TrendingItem
 from newscollector.platforms.base import BaseCollector
@@ -24,7 +22,11 @@ class InstagramCollector(BaseCollector):
     def platform_name(self) -> str:
         return "instagram"
 
-    async def collect(self, region: str | None = None) -> CollectionResult:
+    async def collect(
+        self,
+        region: str | None = None,
+        topic: str | None = None,
+    ) -> CollectionResult:
         logger.info("Fetching Instagram trending via Playwright")
 
         try:
@@ -51,18 +53,28 @@ class InstagramCollector(BaseCollector):
                 page = await context.new_page()
 
                 # Navigate to Instagram explore page
-                await page.goto("https://www.instagram.com/explore/", wait_until="networkidle", timeout=30000)
+                await page.goto(
+                    "https://www.instagram.com/explore/",
+                    wait_until="networkidle",
+                    timeout=30000,
+                )
 
                 # Wait for content to load
                 await page.wait_for_timeout(3000)
 
                 # Try to extract post data from the page
                 # Instagram loads data dynamically; we intercept embedded JSON or scrape visible elements
-                posts = await page.query_selector_all('article a[href*="/p/"], article a[href*="/reel/"]')
+                posts = await page.query_selector_all(
+                    'article a[href*="/p/"], article a[href*="/reel/"]'
+                )
 
                 for rank, post in enumerate(posts[:30], start=1):
                     href = await post.get_attribute("href")
-                    url = f"https://www.instagram.com{href}" if href and not href.startswith("http") else href
+                    url = (
+                        f"https://www.instagram.com{href}"
+                        if href and not href.startswith("http")
+                        else href
+                    )
 
                     # Try to get alt text from images inside the link
                     img = await post.query_selector("img")
@@ -72,7 +84,9 @@ class InstagramCollector(BaseCollector):
 
                     items.append(
                         self._make_item(
-                            title=alt_text[:200] if alt_text else f"Trending post #{rank}",
+                            title=(
+                                alt_text[:200] if alt_text else f"Trending post #{rank}"
+                            ),
                             url=url,
                             source="Instagram Explore",
                             region=region or "Global",

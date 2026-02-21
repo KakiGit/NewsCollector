@@ -2,10 +2,6 @@
 # Copy this file to config.yaml and fill in your API keys.
 #   cp config/config.example.yaml config/config.yaml
 
-# NewsAPI.org — free tier: https://newsapi.org/register
-newsapi:
-  api_key: "YOUR_NEWSAPI_KEY_HERE"
-
 # X/Twitter API — https://developer.twitter.com/en/portal/dashboard
 twitter:
   bearer_token: "YOUR_TWITTER_BEARER_TOKEN_HERE"
@@ -13,3 +9,47 @@ twitter:
 # YouTube Data API v3 — https://console.cloud.google.com/apis/credentials
 youtube:
   api_key: "YOUR_YOUTUBE_API_KEY_HERE"
+
+# RedNote (Xiaohongshu) — requires browser session cookies due to bot detection
+# To get cookies: Open xiaohongshu.com in your browser, login, then:
+#   Chrome: DevTools (F12) > Application > Cookies > copy all cookie values
+#   Firefox: DevTools (F12) > Storage > Cookies > copy all cookie values
+# Format: "cookie1=value1; cookie2=value2; ..."
+rednote:
+  cookies: ""
+
+# Optional: AI summarization and labelling (OpenAI-compatible API)
+# When set, each item gets an AI-generated summary and 3 topic labels.
+ai:
+  ai_base_url: "https://api.openai.com/v1"   # e.g. OpenAI, Together, Groq, or local Ollama
+  ai_model: "gpt-4o-mini"                     # model name
+  ai_api_key: "YOUR_AI_API_KEY_HERE"
+  # Optional: language for summary and labels (e.g. "English", "中文", "日本語")
+  ai_response_language: "English"
+  # AI-first platform extraction for rednote/tiktok/douyin from landing page HTML
+  ai_platform_collection_enabled: true
+  # Minimum valid AI extracted items before fallback to selectors/API
+  ai_platform_min_items_before_fallback: 6
+  # Max extracted items requested from AI per platform page
+  ai_platform_extract_max_items: 30
+  # Character budgets for fetch and prompt safety
+  ai_html_char_limit: 160000
+  ai_extract_html_prompt_char_limit: 8000
+  # Per AI API call timeout in seconds
+  ai_request_timeout: 60
+  # Disable AI enrichment for remaining items after this many failures
+  ai_max_failures_before_disable: 3
+  # Summarize from linked page text first when item URL exists
+  ai_page_summary_enabled: true
+  ai_page_html_char_limit: 200000
+  ai_page_char_limit: 12000
+  # Maximum items fed into AI for daily verdict generation
+  ai_max_verdict_items: 400
+  # Number of retries when AI returns unparseable JSON response
+  ai_json_number_retry: 3
+
+# Storage (PostgreSQL)
+storage:
+  # PostgreSQL connection string, e.g.:
+  # postgresql://user:password@localhost:5432/newscollector
+  database_url: ""
