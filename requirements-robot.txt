@@ -1,0 +1,4 @@
+# Robot Framework dependencies for system tests
+robotframework>=8.0
+robotframework-requests>=0.9.0
+robotframework-faker>=5.0.0

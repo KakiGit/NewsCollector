@@ -10,6 +10,8 @@ services:
     image: docker.io/library/postgres:16-alpine
     container_name: newscollector_db
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - ./output/sqldata:/var/lib/postgresql/data
     environment:
@@ -24,7 +26,7 @@ services:
     container_name: newscollector
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./config/config.yaml:/app/config/config.yaml:ro
       - ./output:/app/output

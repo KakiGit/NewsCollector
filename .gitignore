@@ -24,3 +24,8 @@ output/
 docker-compose.yml
 
 node_modules/
+
+# Robot Framework - generated files
+log.html
+output.xml
+report.html

@@ -191,7 +191,9 @@ def _ensure_schema(conn: psycopg.Connection) -> None:
             """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS financial_reports (
-                ticker TEXT PRIMARY KEY,
+                ticker TEXT NOT NULL,
+                report_year INTEGER NOT NULL,
+                report_quarter INTEGER NOT NULL,
                 company_name TEXT NOT NULL,
                 regions TEXT[] NOT NULL DEFAULT '{}',
                 sector TEXT,
@@ -199,8 +201,6 @@ def _ensure_schema(conn: psycopg.Connection) -> None:
                 currency TEXT,
                 report_period TEXT,
                 report_type TEXT,
-                report_year INTEGER,
-                report_quarter INTEGER,
                 revenue DOUBLE PRECISION,
                 net_income DOUBLE PRECISION,
                 gross_profit DOUBLE PRECISION,
@@ -221,7 +221,8 @@ def _ensure_schema(conn: psycopg.Connection) -> None:
                 health_score INTEGER,
                 potential_score INTEGER,
                 collected_at TIMESTAMPTZ NOT NULL,
-                error TEXT
+                error TEXT,
+                UNIQUE (ticker, report_year, report_quarter)
             );
             """)
         cur.execute(
@@ -808,7 +809,7 @@ def save_financial_reports(
                         %(summary)s, %(health_score)s, %(potential_score)s,
                         %(collected_at)s, %(error)s
                     )
-                    ON CONFLICT (ticker) DO UPDATE SET
+                    ON CONFLICT (ticker, report_year, report_quarter) DO UPDATE SET
                         company_name = EXCLUDED.company_name,
                         regions = (
                             SELECT ARRAY(
@@ -953,7 +954,7 @@ def upsert_financial_report(
                     %(summary)s, %(health_score)s, %(potential_score)s,
                     %(collected_at)s, %(error)s
                 )
-                ON CONFLICT (ticker) DO UPDATE SET
+                ON CONFLICT (ticker, report_year, report_quarter) DO UPDATE SET
                     company_name = EXCLUDED.company_name,
                     regions = EXCLUDED.regions,
                     sector = EXCLUDED.sector,

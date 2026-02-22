@@ -190,6 +190,51 @@ python -m newscollector list-regions
 ./scripts/import-data.sh user@server  # Import local data to remote
 ```
 
+## Testing
+
+### Unit Tests (pytest)
+
+```bash
+# Run all tests
+pytest
+
+# Run a single test file
+pytest tests/test_collector.py
+
+# Run a single test
+pytest tests/test_collector.py::test_function_name -v
+```
+
+### System Tests (Robot Framework)
+
+Robot Framework system tests run the full stack (database + server) to test end-to-end user experience.
+
+```bash
+# Install robot framework dependencies
+pip install -r requirements-robot.txt
+
+# Start PostgreSQL database
+docker compose up -d postgresql
+
+# Run all robot tests (server must be running)
+robot tests/test_system.robot
+
+# Run a specific test
+robot --test "Test API Platforms Endpoint" tests/test_system.robot
+
+# Start server automatically and run tests
+python -m newscollector serve &
+robot tests/test_system.robot
+```
+
+Environment variables (optional):
+- `NEWSCOLLECTOR_TEST_BASE_URL` - Web server URL (default: http://localhost:8000)
+- `NEWSCOLLECTOR_TEST_DB_HOST` - Database host (default: localhost)
+- `NEWSCOLLECTOR_TEST_DB_PORT` - Database port (default: 5432)
+- `NEWSCOLLECTOR_TEST_DB_NAME` - Database name (default: newscollector)
+- `NEWSCOLLECTOR_TEST_DB_USER` - Database user (default: newscollector)
+- `NEWSCOLLECTOR_TEST_DB_PASSWORD` - Database password (default: localdevpass)
+
 ## Output
 
 Results are stored in PostgreSQL. Configure `storage.database_url` in
