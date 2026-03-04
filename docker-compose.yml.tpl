@@ -22,7 +22,7 @@ services:
       - shared-network
 
   newscollector:
-    build: .
+    image: localhost/newscollector:latest
     container_name: newscollector
     restart: unless-stopped
     ports:

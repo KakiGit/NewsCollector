@@ -1,6 +1,9 @@
 # Python 3.12 + Playwright with Chromium (for Instagram, RedNote, Douyin scraping)
 FROM mcr.microsoft.com/playwright/python:v1.58.0-jammy
 
+# Build args for cache-busting
+ARG CACHEBUST=1
+
 WORKDIR /app
 
 # Install Python dependencies
@@ -8,7 +11,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN playwright install --with-deps chromium
 
-# Copy application
+# Copy application (use --build-arg CACHEBUST=$(date +%s) to force rebuild)
 COPY config config/
 COPY newscollector newscollector/
 

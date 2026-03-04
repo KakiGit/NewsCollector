@@ -16,7 +16,7 @@ set -euo pipefail
 # Configuration
 CONTAINER_NAME="newscollector"
 IMAGE_NAME="localhost/newscollector"
-IMAGE_TAG="local"
+IMAGE_TAG="latest"
 COMPOSE_FILE="docker-compose.yml"
 WITH_DB=""
 CLEAN=""
@@ -187,9 +187,9 @@ start_compose() {
     if [[ "$REBUILD" == "yes" ]]; then
         log_info "Building image..."
         if [[ "$container_runtime" == "podman" ]]; then
-            podman build --no-cache -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+            podman build --build-arg CACHEBUST=$(date +%s) --no-cache -t "${IMAGE_NAME}:${IMAGE_TAG}" .
         else
-            docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+            docker build --build-arg CACHEBUST=$(date +%s) --no-cache -t "${IMAGE_NAME}:${IMAGE_TAG}" .
         fi
     fi
 
