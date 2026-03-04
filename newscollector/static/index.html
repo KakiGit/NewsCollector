@@ -69,6 +69,26 @@
         </button>
       </div>
 
+      <!-- Financial Reports Sub-tabs -->
+      <div x-show="viewMode === 'financial'" class="mt-3 flex items-center gap-1 rounded-lg bg-gray-100 p-1 w-fit">
+        <button @click="financialSubTab = 'reports'; fetchFinancialReports()"
+                :class="financialSubTab === 'reports' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span class="hidden sm:inline">Financial Reports</span>
+        </button>
+        <button @click="financialSubTab = 'scores'; fetchCompanyScores()"
+                :class="financialSubTab === 'scores' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
+                class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span class="hidden sm:inline">Company Scores</span>
+        </button>
+      </div>
+
       <div class="flex items-center gap-3 text-sm text-gray-500">
         <template x-if="selectedDate">
           <span class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
@@ -78,7 +98,8 @@
         </template>
         <span class="hidden sm:inline" x-show="viewMode === 'news' && items.length > 0" x-text="newsPagination.total > 0 ? (newsPagination.offset + 1) + '-' + Math.min(newsPagination.offset + items.length, newsPagination.total) + ' of ' + newsPagination.total : items.length + ' items'"></span>
         <span class="hidden sm:inline" x-show="viewMode === 'analysis' && analysisEntries.length > 0" x-text="analysisEntries.length + ' scopes'"></span>
-        <span class="hidden sm:inline" x-show="viewMode === 'financial' && financialReports.length > 0" x-text="finWithAI + '/' + (finPagination.total > 0 ? finPagination.total : financialReports.length) + ' analyzed · USD'"></span>
+        <span class="hidden sm:inline" x-show="viewMode === 'financial' && financialSubTab === 'reports' && financialReports.length > 0" x-text="finWithAI + '/' + (finPagination.total > 0 ? finPagination.total : financialReports.length) + ' analyzed · USD'"></span>
+        <span class="hidden sm:inline" x-show="viewMode === 'financial' && financialSubTab === 'scores' && companyScoresData.count > 0" x-text="companyScoresData.count + ' companies'"></span>
       </div>
     </div>
   </header>
@@ -126,7 +147,7 @@
         </div>
       </div>
       <p class="text-sm leading-relaxed text-gray-700" x-show="dailyVerdict" x-text="nk(dailyVerdict?.local_summary)"></p>
-      <p class="mt-2 text-xs text-gray-500" x-show="dailyVerdict && dailyVerdict.local_scope_key && dailyVerdict.local_scope_key !== 'all'" x-text="'Local scope: ' + dailyVerdict.local_scope_key"></p>
+      <p class="mt-2 text-xs text-gray-500" x-show="dailyVerdict?.local_scope_key && dailyVerdict?.local_scope_key !== 'all'" x-text="'Local scope: ' + dailyVerdict?.local_scope_key"></p>
     </div>
 
     <!-- ===== Filter Bar (news mode) ===== -->
@@ -387,7 +408,7 @@
     </div>
 
     <!-- ===== Financial Reports Filter Bar ===== -->
-    <div x-show="viewMode === 'financial'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <!-- Region -->
         <div>
@@ -442,7 +463,7 @@
     </div>
 
     <!-- ===== Financial View Toggle (cards vs charts) ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0" class="mb-6">
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && financialReports.length > 0" class="mb-6">
       <!-- Summary Stats Bar -->
       <div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div class="rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm">
@@ -484,7 +505,7 @@
     </div>
 
     <!-- ===== Scatter Plot (Health vs Potential) ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'scatter'"
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && financialReports.length > 0 && finViewMode === 'scatter'"
          class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <h3 class="mb-3 text-sm font-semibold text-gray-700">Health Score vs Potential Score</h3>
       <div class="relative" style="height: 480px;">
@@ -494,7 +515,7 @@
     </div>
 
     <!-- ===== Sector Breakdown Chart ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'sectors'"
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && financialReports.length > 0 && finViewMode === 'sectors'"
          class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <h3 class="mb-3 text-sm font-semibold text-gray-700">Average Scores by Sector</h3>
       <div class="relative" style="height: 400px;">
@@ -503,7 +524,7 @@
     </div>
 
     <!-- ===== Historical Trends View ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && finViewMode === 'history'"
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && finViewMode === 'history'"
          class="mb-6">
 
       <!-- Ticker selector for history -->
@@ -691,7 +712,7 @@
     </div>
 
     <!-- ===== Empty State (financial mode) ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length === 0" class="py-20 text-center">
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && financialReports.length === 0" class="py-20 text-center">
       <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
@@ -700,7 +721,7 @@
     </div>
 
     <!-- ===== Financial Report Cards Grid ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'cards'"
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && financialReports.length > 0 && finViewMode === 'cards'"
          class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <template x-for="(report, idx) in financialReports" :key="report.ticker || idx">
         <div @click="openFinDetail(report)" class="card-hover cursor-pointer flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-indigo-300 hover:ring-2 hover:ring-indigo-100 transition-all">
@@ -825,7 +846,7 @@
     </div>
 
     <!-- ===== Financial Reports Table View ===== -->
-    <div x-show="viewMode === 'financial' && !loading && !error && financialReports.length > 0 && finViewMode === 'table'"
+    <div x-show="viewMode === 'financial' && financialSubTab === 'reports' && !loading && !error && financialReports.length > 0 && finViewMode === 'table'"
          class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -876,73 +897,88 @@
       </table>
     </div>
 
+    <!-- ===== Company Scores Section (Financial Reports) ===== -->
+    <div x-show="viewMode === 'financial' && financialSubTab === 'scores'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-gray-700">Company Scores & Metrics</h3>
+      </div>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <!-- Industry filter -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Industry</label>
+          <select x-model="scoresSelectedIndustry" @change="fetchCompanyScores()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All industries</option>
+            <template x-for="industry in scoresFilters.industries" :key="industry">
+              <option :value="industry" x-text="industry"></option>
+            </template>
+          </select>
+        </div>
 
-
-
-          <!-- Industry filter -->
-          <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Industry</label>
-            <select x-model="scoresSelectedIndustry" @change="fetchCompanyScores()"
-                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-              <option value="">All industries</option>
-              <template x-for="industry in scoresFilters.industries" :key="industry">
-                <option :value="industry" x-text="industry"></option>
-              </template>
-            </select>
-          </div>
-
-          <!-- Health score range -->
-          <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Health Score</label>
-            <div class="flex items-center gap-2">
-              <input type="number" min="0" max="100" x-model="scoresMinHealth" @change="fetchCompanyScores()" placeholder="Min"
-                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-              <input type="number" min="0" max="100" x-model="scoresMaxHealth" @change="fetchCompanyScores()" placeholder="Max"
-                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-          </div>
-
-          <!-- Potential score range -->
-          <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Potential Score</label>
-            <div class="flex items-center gap-2">
-              <input type="number" min="0" max="100" x-model="scoresMinPotential" @change="fetchCompanyScores()" placeholder="Min"
-                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-              <input type="number" min="0" max="100" x-model="scoresMaxPotential" @change="fetchCompanyScores()" placeholder="Max"
-                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-          </div>
-
-          <!-- Sort -->
-          <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Sort By</label>
-            <select x-model="scoresSortBy" @change="fetchCompanyScores()"
-                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-              <option value="health_score">Health Score (High)</option>
-              <option value="potential_score">Potential Score (High)</option>
-              <option value="revenue">Revenue (High)</option>
-              <option value="market_cap">Market Cap (High)</option>
-              <option value="ticker">Ticker (A-Z)</option>
-              <option value="company_name">Company Name (A-Z)</option>
-            </select>
+        <!-- Health score range -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Health Score</label>
+          <div class="flex items-center gap-2">
+            <input type="number" min="0" max="100" x-model="scoresMinHealth" @change="fetchCompanyScores()" placeholder="Min"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input type="number" min="0" max="100" x-model="scoresMaxHealth" @change="fetchCompanyScores()" placeholder="Max"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
           </div>
         </div>
 
-        <!-- Column visibility toggles -->
-        <div class="mt-4 flex flex-wrap items-center gap-3">
-          <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Show Columns:</span>
-          <template x-for="col in scoresVisibleColumnsList" :key="col.key">
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" x-model="scoresVisibleColumns[col.key]"
-                     class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-              <span class="text-sm text-gray-700" x-text="col.label"></span>
-            </label>
-          </template>
+        <!-- Potential score range -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Potential Score</label>
+          <div class="flex items-center gap-2">
+            <input type="number" min="0" max="100" x-model="scoresMinPotential" @change="fetchCompanyScores()" placeholder="Min"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input type="number" min="0" max="100" x-model="scoresMaxPotential" @change="fetchCompanyScores()" placeholder="Max"
+                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <!-- Sort -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Sort By</label>
+          <select x-model="scoresSortBy" @change="fetchCompanyScores()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="health_score">Health Score (High)</option>
+            <option value="potential_score">Potential Score (High)</option>
+            <option value="revenue">Revenue (High)</option>
+            <option value="market_cap">Market Cap (High)</option>
+            <option value="ticker">Ticker (A-Z)</option>
+            <option value="company_name">Company Name (A-Z)</option>
+          </select>
+        </div>
+
+        <!-- Sector filter -->
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Sector</label>
+          <select x-model="scoresSelectedSector" @change="fetchCompanyScores()"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="">All sectors</option>
+            <template x-for="sector in scoresFilters.sectors" :key="sector">
+              <option :value="sector" x-text="sector"></option>
+            </template>
+          </select>
         </div>
       </div>
 
-      <!-- ===== Company Scores Summary ===== -->
-      <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <!-- Column visibility toggles -->
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Show Columns:</span>
+        <template x-for="col in scoresVisibleColumnsList" :key="col.key">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" x-model="scoresVisibleColumns[col.key]"
+                   class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+            <span class="text-sm text-gray-700" x-text="col.label"></span>
+          </label>
+        </template>
+      </div>
+    </div>
+
+    <!-- ===== Company Scores Summary ===== -->
+    <div x-show="viewMode === 'financial' && financialSubTab === 'scores'" class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total Companies</p>
           <p class="mt-1 text-2xl font-bold text-gray-900" x-text="companyScoresData.count || 0"></p>
@@ -960,7 +996,7 @@
       </div>
 
       <!-- ===== Company Scores View Mode Toggle ===== -->
-      <div class="mb-4 flex items-center justify-between">
+      <div x-show="viewMode === 'financial' && financialSubTab === 'scores'" class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-1 rounded-lg bg-gray-100 p-1 w-fit">
           <button @click="scoresViewMode = 'table'"
                   :class="scoresViewMode === 'table' ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'"
@@ -991,7 +1027,7 @@
       </div>
 
       <!-- ===== Company Scores Empty State ===== -->
-      <div x-show="!loading && !error && (!companyScoresData.companies || companyScoresData.companies.length === 0)" class="py-20 text-center">
+      <div x-show="viewMode === 'financial' && financialSubTab === 'scores' && !loading && !error && (!companyScoresData.companies || companyScoresData.companies.length === 0)" class="py-20 text-center">
         <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
@@ -1000,7 +1036,7 @@
       </div>
 
       <!-- ===== Company Scores Table ===== -->
-      <div x-show="scoresViewMode === 'table' && !loading && !error && companyScoresData.companies?.length > 0"
+      <div x-show="viewMode === 'financial' && financialSubTab === 'scores' && scoresViewMode === 'table' && !loading && !error && companyScoresData.companies?.length > 0"
            class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
@@ -1047,7 +1083,7 @@
       </div>
 
       <!-- ===== Company Scores Scatter Plot ===== -->
-      <div x-show="scoresViewMode === 'scatter' && !loading && !error && companyScoresData.companies?.length > 0"
+      <div x-show="viewMode === 'financial' && financialSubTab === 'scores' && scoresViewMode === 'scatter' && !loading && !error && companyScoresData.companies?.length > 0"
            class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <h3 class="mb-4 text-sm font-semibold text-gray-700">Health vs Potential Score</h3>
         <div class="relative h-80 w-full">
@@ -1056,7 +1092,7 @@
       </div>
 
       <!-- ===== Company Scores Bar Chart ===== -->
-      <div x-show="scoresViewMode === 'bars' && !loading && !error && companyScoresData.companies?.length > 0"
+      <div x-show="viewMode === 'financial' && financialSubTab === 'scores' && scoresViewMode === 'bars' && !loading && !error && companyScoresData.companies?.length > 0"
            class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <h3 class="mb-4 text-sm font-semibold text-gray-700">Average Scores by Sector</h3>
         <div class="relative h-80 w-full">
@@ -1064,7 +1100,7 @@
         </div>
       </div>
 
-
+    </div>
     </div>
 
   </main>
@@ -1110,6 +1146,7 @@
         finStatusFilter: '',
         finWithAI: 0,
         finViewMode: 'cards', // 'cards', 'scatter', 'sectors', 'history', 'table'
+        financialSubTab: 'reports', // 'reports' or 'scores'
         finDetailReport: null,
         finAvgHealth: '--',
         finAvgPotential: '--',
@@ -1188,7 +1225,7 @@
               this.selectedDate = dates[0];
             }
             // Restore saved UI state (filters, tab) before fetching
-            this.restoreUiState();
+            await this.restoreUiState();
             // Fetch based on restored view mode
             if (this.viewMode === 'financial') {
               await this.fetchFinancialReports();
@@ -1243,12 +1280,13 @@
               finSortBy: this.finSortBy,
               finStatusFilter: this.finStatusFilter,
               finViewMode: this.finViewMode,
+              financialSubTab: this.financialSubTab,
             };
             localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify(state));
           } catch (_) {}
         },
 
-        restoreUiState() {
+        async restoreUiState() {
           try {
             const raw = localStorage.getItem(UI_STATE_STORAGE_KEY);
             if (!raw) return;
@@ -1288,6 +1326,15 @@
             }
             if (state.finViewMode === 'cards' || state.finViewMode === 'scatter' || state.finViewMode === 'sectors' || state.finViewMode === 'history' || state.finViewMode === 'table') {
               this.finViewMode = state.finViewMode;
+            }
+            if (state.financialSubTab === 'reports' || state.financialSubTab === 'scores') {
+              this.financialSubTab = state.financialSubTab;
+              // Fetch appropriate data when restoring subtab
+              if (this.financialSubTab === 'reports') {
+                await this.fetchFinancialReports();
+              } else if (this.financialSubTab === 'scores') {
+                await this.fetchCompanyScores();
+              }
             }
           } catch (_) {}
         },
