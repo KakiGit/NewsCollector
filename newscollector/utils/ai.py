@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Any
 
-import httpx
+from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +20,17 @@ def _err_text(exc: Exception) -> str:
 LABEL_HINTS = "financial, sports, politics, game, entertainment, technology, science, health, world"
 
 
-def _extract_json_text(content: str) -> str:
-    """Extract JSON from LLM response content.
+def _extract_json_text(content: str) -> dict[str, Any] | list[dict[str, Any]] | None:
+    """Extract and parse JSON from LLM response content.
 
     Handles:
     - Plain JSON: {"a": 1}
     - JSON in markdown code blocks: ```json {"a": 1} ``` or ``` {"a": 1} ```
     - JSON embedded in text with surrounding explanation
-    - Returns original text if no JSON-like content found
+    - Returns None if no valid JSON found or parsing fails
     """
     if not content:
-        return content
+        return None
 
     # Try to find JSON in markdown code blocks first
     # Handle both ```json and ``` (fenced code)
@@ -42,7 +42,11 @@ def _extract_json_text(content: str) -> str:
         extracted = fence_match.group(1).strip()
         # Verify it looks like JSON
         if extracted.startswith("{") or extracted.startswith("["):
-            return extracted
+            try:
+                return json.loads(extracted)
+            except json.JSONDecodeError:
+                print(content)
+                pass
 
     # Try to find JSON object/array directly in the content
     # Look for first { or [ and try to find matching closing bracket
@@ -60,10 +64,14 @@ def _extract_json_text(content: str) -> str:
         json_end = _find_json_end(content[json_start:])
         if json_end > 0:
             extracted = content[json_start : json_start + json_end].strip()
-            return extracted
+            try:
+                return json.loads(extracted)
+            except json.JSONDecodeError:
+                print(content)
+                pass
 
-    # No JSON found, return original content
-    return content
+    # No JSON found or parse failed
+    return None
 
 
 def _find_json_end(text: str) -> int:
@@ -399,43 +407,28 @@ async def summarize_and_label(
     Returns:
         (summary, labels) — summary may be None on parse/API error; labels may be empty.
     """
-    url = base_url.rstrip("/") + "/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "model": model,
-        "messages": [
-            {
-                "role": "user",
-                "content": _build_prompt(title, description, response_language),
-            }
-        ],
-    }
+    client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
 
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            resp = await client.post(url, json=body, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
-    except (httpx.HTTPError, json.JSONDecodeError) as e:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": _build_prompt(title, description, response_language),
+                }
+            ],
+        )
+    except Exception as e:
         logger.warning("AI request failed: %s", _err_text(e))
         return None, []
 
-    choices = data.get("choices")
-    if not choices or not isinstance(choices, list):
-        logger.warning("AI response missing choices")
-        return None, []
-
-    content = (choices[0].get("message") or {}).get("content") or ""
+    content = response.choices[0].message.content or ""
     content = content.strip()
 
-    content = _extract_json_text(content)
-    try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError as e:
-        logger.warning("AI response not valid JSON: %s, %s", e, content)
+    parsed = _extract_json_text(content)
+    if parsed is None or not isinstance(parsed, dict):
+        logger.warning("AI response not valid JSON: %s", content)
         return None, []
 
     summary = parsed.get("summary")
@@ -457,40 +450,29 @@ async def summarize_and_label_from_page(
     timeout: float = 35.0,
 ) -> tuple[str | None, list[str]]:
     """Call AI to summarize from page text and return labels."""
-    url = base_url.rstrip("/") + "/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "model": model,
-        "messages": [
-            {
-                "role": "user",
-                "content": _build_page_summary_prompt(
-                    title, page_text, response_language
-                ),
-            }
-        ],
-    }
+    client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
 
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            resp = await client.post(url, json=body, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
-    except (httpx.HTTPError, json.JSONDecodeError) as e:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": _build_page_summary_prompt(
+                        title, page_text, response_language
+                    ),
+                }
+            ],
+        )
+    except Exception as e:
         logger.warning("AI page-summary request failed: %s", _err_text(e))
         return None, []
 
-    content = _extract_json_text(_first_choice_content(data))
-    if not content:
-        logger.warning("AI page-summary response missing content")
-        return None, []
-    try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError as e:
-        logger.warning("AI page-summary response not valid JSON: %s, %s", e, content)
+    content = response.choices[0].message.content or ""
+
+    parsed = _extract_json_text(content)
+    if parsed is None or not isinstance(parsed, dict):
+        logger.warning("AI page-summary response missing valid JSON")
         return None, []
 
     summary = parsed.get("summary")
@@ -513,44 +495,33 @@ async def extract_items_from_html(
     timeout: float = 45.0,
 ) -> list[dict[str, Any]]:
     """Call AI to extract structured items from platform page HTML."""
-    url = base_url.rstrip("/") + "/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "model": model,
-        "messages": [
-            {
-                "role": "user",
-                "content": _build_html_extract_prompt(
-                    platform=platform,
-                    page_url=page_url,
-                    html_excerpt=html_excerpt,
-                    response_language=response_language,
-                    max_items=max_items,
-                ),
-            }
-        ],
-    }
+    client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
 
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            resp = await client.post(url, json=body, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
-    except (httpx.HTTPError, json.JSONDecodeError) as e:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": _build_html_extract_prompt(
+                        platform=platform,
+                        page_url=page_url,
+                        html_excerpt=html_excerpt,
+                        response_language=response_language,
+                        max_items=max_items,
+                    ),
+                }
+            ],
+        )
+    except Exception as e:
         logger.warning("AI HTML extraction request failed: %s", _err_text(e))
         return []
 
-    content = _extract_json_text(_first_choice_content(data))
-    if not content:
-        logger.warning("AI HTML extraction response missing content")
-        return []
-    try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError as e:
-        logger.warning("AI HTML extraction response not valid JSON: %s, %s", e, content)
+    content = response.choices[0].message.content or ""
+
+    parsed = _extract_json_text(content)
+    if parsed is None:
+        logger.warning("AI HTML extraction response missing valid JSON")
         return []
 
     return _normalize_extracted_items(parsed, max_items=max_items)
@@ -571,11 +542,9 @@ def _parse_verdict_response(content: str) -> dict[str, Any] | None:
         logger.warning("Daily AI verdict response missing choices")
         return None
 
-    content = _extract_json_text(content)
-    try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError as e:
-        logger.warning("Daily AI verdict response not valid JSON: %s, %s", e, content)
+    parsed = _extract_json_text(content)
+    if parsed is None or not isinstance(parsed, dict):
+        logger.warning("Daily AI verdict response not valid JSON: %s", content)
         return None
 
     summary = parsed.get("summary")
@@ -619,27 +588,19 @@ async def _call_verdict_api(
 
     If parsing fails, retries up to ai_json_number_retry times.
     """
-    url = base_url.rstrip("/") + "/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-    }
+    client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
 
     for attempt in range(ai_json_number_retry):
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                resp = await client.post(url, json=body, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-        except (httpx.HTTPError, json.JSONDecodeError) as e:
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as e:
             logger.warning("Daily AI verdict request failed: %s", _err_text(e))
             return None
 
-        content = _first_choice_content(data)
+        content = response.choices[0].message.content or ""
         result = _parse_verdict_response(content)
 
         if result is not None:
@@ -754,35 +715,25 @@ async def analyze_financial_report(
 ) -> tuple[str | None, int | None, int | None]:
     """Analyze a financial report using AI and return (summary, health_score, potential_score)."""
     prompt = _build_financial_analysis_prompt(report_data, response_language)
-    url = base_url.rstrip("/") + "/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-    }
+    client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
 
     for attempt in range(ai_json_number_retry):
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                resp = await client.post(url, json=body, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-        except (httpx.HTTPError, json.JSONDecodeError) as e:
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as e:
             logger.warning("Financial analysis AI request failed: %s", _err_text(e))
             return None, None, None
 
-        content = _first_choice_content(data)
+        content = response.choices[0].message.content or ""
         if not content:
             logger.warning("Financial analysis AI response missing content")
             return None, None, None
 
-        content = _extract_json_text(content)
-        try:
-            parsed = json.loads(content)
-        except json.JSONDecodeError:
+        parsed = _extract_json_text(content)
+        if parsed is None or not isinstance(parsed, dict):
             logger.warning(
                 "Financial analysis AI parse failed (attempt %d/%d)",
                 attempt + 1,
