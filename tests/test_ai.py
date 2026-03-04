@@ -34,6 +34,31 @@ class TestExtractJsonText:
     def test_empty_string(self):
         assert _extract_json_text("") == ""
 
+    def test_json_before_code_block(self):
+        # When AI returns JSON followed by a code block, extract the JSON
+        raw = '''{"summary":"The day presented...","global_political_score":68}
+
+```
+example here
+```'''
+        expected = '{"summary":"The day presented...","global_political_score":68}'
+        assert _extract_json_text(raw) == expected
+
+    def test_text_before_json(self):
+        # Text section before JSON
+        raw = "Here is the result: {\"a\": 1}"
+        assert _extract_json_text(raw) == '{"a": 1}'
+
+    def test_text_after_json(self):
+        # Text section after JSON
+        raw = '{"a": 1}\n\nThanks for using our service!'
+        assert _extract_json_text(raw) == '{"a": 1}'
+
+    def test_text_before_and_after_json(self):
+        # Text sections before and after JSON
+        raw = "Sure, here's the data: {\"key\": \"value\"}\n\nLet me know if you need more."
+        assert _extract_json_text(raw) == '{"key": "value"}'
+
 
 class TestFirstChoiceContent:
     def test_valid_choices(self):

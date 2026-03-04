@@ -4,8 +4,9 @@ Library            Collections
 Library            ./robot_lib.py
 
 *** Variables ***
-${BASE_URL}            http://localhost:8000
-${DB_HOST}             localhost
+${BASE_URL}            http://localhost:8090
+${SERVER_PORT}        8090
+${DB_HOST}             newscollector_db
 ${DB_PORT}            5432
 ${DB_NAME}            newscollector
 ${DB_USER}            newscollector
