@@ -544,7 +544,8 @@ def load_daily_verdicts(
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT * FROM daily_verdicts
@@ -756,7 +757,8 @@ def load_financial_reports(
 
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             # Get total count
             cur.execute(count_query, params)
             total_result = cur.fetchone()
@@ -1179,7 +1181,8 @@ def load_financial_history(
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             if ticker:
                 if periods:
                     cur.execute(
@@ -1234,7 +1237,8 @@ def get_collected_tickers(
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             cur.execute("SELECT ticker, report_period FROM financial_reports;")
             rows = cur.fetchall()
     return {r["ticker"]: r["report_period"] for r in rows if r.get("ticker")}
@@ -1249,7 +1253,8 @@ def list_platforms(db_url: str | None = None) -> list[str]:
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             cur.execute(
                 "SELECT DISTINCT platform FROM collected_items ORDER BY platform;"
             )
@@ -1261,7 +1266,8 @@ def list_dates(platform: str | None = None, db_url: str | None = None) -> list[s
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             if platform:
                 cur.execute(
                     """
@@ -1283,7 +1289,8 @@ def list_regions(db_url: str | None = None) -> list[str]:
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             cur.execute("""
                 SELECT DISTINCT region FROM collected_items
                 WHERE region IS NOT NULL AND region <> ''
@@ -1298,7 +1305,8 @@ def list_labels(db_url: str | None = None) -> list[str]:
     _ = db_url  # resolved via _use_connection
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             cur.execute("""
                 SELECT DISTINCT label FROM (
                     SELECT UNNEST(labels) AS label FROM collected_items
@@ -1327,6 +1335,13 @@ def query_collected_items(
         Tuple of (items list, total count).
     """
     _ = db_url  # resolved via _use_connection
+
+    # Validate date format - must be YYYY-MM-DD
+    if date:
+        import re
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", date):
+            # Invalid date format - return empty results instead of crashing
+            return [], 0
 
     clauses: list[str] = []
     params: dict[str, Any] = {}
@@ -1373,7 +1388,8 @@ def query_collected_items(
 
     with _use_connection() as conn:
         _ensure_schema(conn)
-        with conn.cursor(row_factory=dict_row) as cur:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
             # Get total count
             cur.execute(count_query, params)
             total_result = cur.fetchone()

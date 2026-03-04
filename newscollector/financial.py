@@ -104,7 +104,7 @@ def _parse_report_period(
     Returns:
         Tuple of (year, quarter, type) where:
         - year: int or None
-        - quarter: int (1-4) or None for annual reports
+        - quarter: int (0-4), where 0 represents annual reports
         - type: 'quarterly' or 'annual' or None
     """
     if not period_str:
@@ -127,7 +127,8 @@ def _parse_report_period(
     if "-FY" in period_str:
         try:
             year = int(period_str.replace("-FY", ""))
-            return year, None, "annual"
+            # Use 0 to represent annual reports (quarters are 1-4)
+            return year, 0, "annual"
         except ValueError:
             pass
 
@@ -135,7 +136,7 @@ def _parse_report_period(
     try:
         year = int(period_str)
         if 1900 <= year <= 2100:
-            return year, None, "annual"
+            return year, 0, "annual"
     except ValueError:
         pass
 

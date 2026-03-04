@@ -130,9 +130,9 @@ class FinancialReport(BaseModel):
     )
     report_quarter: int | None = Field(
         default=None,
-        ge=1,
+        ge=0,
         le=4,
-        description="Quarter of the report (1-4). Null for annual reports.",
+        description="Quarter of the report (1-4). 0 for annual reports.",
     )
 
     # Key financial metrics

@@ -21,21 +21,76 @@ LABEL_HINTS = "financial, sports, politics, game, entertainment, technology, sci
 
 
 def _extract_json_text(content: str) -> str:
-    """Extract JSON payload from raw model content."""
-    payload = (content or "").strip()
-    if "```" not in payload:
-        return payload
+    """Extract JSON from LLM response content.
 
-    start = payload.find("```")
-    if start == -1:
-        return payload
-    first_newline = payload.find("\n", start)
-    if first_newline == -1:
-        return payload
-    end = payload.find("```", first_newline + 1)
-    if end == -1:
-        return payload
-    return payload[first_newline + 1 : end].strip()
+    Handles:
+    - Plain JSON: {"a": 1}
+    - JSON in markdown code blocks: ```json {"a": 1} ``` or ``` {"a": 1} ```
+    - JSON embedded in text with surrounding explanation
+    - Returns original text if no JSON-like content found
+    """
+    if not content:
+        return content
+
+    # Try to find JSON in markdown code blocks first
+    # Handle both ```json and ``` (fenced code)
+    import re
+
+    # Match ```json ... ``` or ``` ... ```
+    fence_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", content, re.DOTALL)
+    if fence_match:
+        extracted = fence_match.group(1).strip()
+        # Verify it looks like JSON
+        if extracted.startswith("{") or extracted.startswith("["):
+            return extracted
+
+    # Try to find JSON object/array directly in the content
+    # Look for first { or [ and try to find matching closing bracket
+    json_start = -1
+    for i, char in enumerate(content):
+        if char == "{":
+            json_start = i
+            break
+        if char == "[":
+            json_start = i
+            break
+
+    if json_start >= 0:
+        # Find the end using our helper function
+        json_end = _find_json_end(content[json_start:])
+        if json_end > 0:
+            extracted = content[json_start : json_start + json_end].strip()
+            return extracted
+
+    # No JSON found, return original content
+    return content
+
+
+def _find_json_end(text: str) -> int:
+    """Find the end position of a JSON object by tracking brace nesting."""
+    depth = 0
+    in_string = False
+    escape_next = False
+
+    for i, char in enumerate(text):
+        if escape_next:
+            escape_next = False
+            continue
+        if char == "\\":
+            escape_next = True
+            continue
+        if char == '"' and not escape_next:
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+    return len(text)
 
 
 def _first_choice_content(data: dict[str, Any]) -> str:
@@ -67,7 +122,9 @@ def _build_prompt(
 Suggested label categories (use these or similar): {LABEL_HINTS}
 
 Respond with valid JSON only, no other text:
-{{"summary": "Your one or two sentence summary here.", "labels": ["label1", "label2", "label3"]}}
+Each object keys:
+- summary (required, non-empty string)
+- labels (required, array of 3 non-empty strings)
 
 Content:
 {content}"""
@@ -94,7 +151,9 @@ Suggested label categories (use these or similar): {LABEL_HINTS}
 Use this title as context: {clean_title or "(no title)"}
 
 Respond with valid JSON only, no other text:
-{{"summary": "Your one or two sentence summary here.", "labels": ["label1", "label2", "label3"]}}
+Each object keys:
+- summary (required, non-empty string)
+- labels (required, array of 3 non-empty strings)
 
 Page text:
 {clean_page}"""
@@ -241,13 +300,12 @@ def _build_daily_verdict_prompt(
 Use only the provided items and avoid certainty. Keep the tone neutral and concise.
 
 Return valid JSON only with exactly these keys:
-{{
-  "summary": "2-4 short sentences about the day overall.",
-  "global_political_score": 0,
-  "global_economic_score": 0,
-  "domestic_political_score": 0,
-  "domestic_economic_score": 0
-}}
+Each object keys:
+- summary (required, non-empty string)
+- global_political_score (required, integer 0-100)
+- global_economic_score (required, integer 0-100)
+- domestic_political_score (required, integer 0-100)
+- domestic_economic_score (required, integer 0-100)
 
 Scoring rules:
 - 0 means severe instability/crisis, 100 means very stable/healthy conditions.
@@ -300,13 +358,12 @@ Now analyze the following additional items and UPDATE the verdict by combining i
 Use only the provided items and avoid certainty. Keep the tone neutral and concise.
 
 Return valid JSON only with exactly these keys:
-{{
-  "summary": "2-4 short sentences about the day overall (incorporating all items analyzed so far).",
-  "global_political_score": 0,
-  "global_economic_score": 0,
-  "domestic_political_score": 0,
-  "domestic_economic_score": 0
-}}
+Each object keys:
+- summary (required, non-empty string)
+- global_political_score (required, integer 0-100)
+- global_economic_score (required, integer 0-100)
+- domestic_political_score (required, integer 0-100)
+- domestic_economic_score (required, integer 0-100)
 
 Scoring rules:
 - 0 means severe instability/crisis, 100 means very stable/healthy conditions.
@@ -378,7 +435,7 @@ async def summarize_and_label(
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as e:
-        logger.warning("AI response not valid JSON: %s", e)
+        logger.warning("AI response not valid JSON: %s, %s", e, content)
         return None, []
 
     summary = parsed.get("summary")
@@ -433,7 +490,7 @@ async def summarize_and_label_from_page(
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as e:
-        logger.warning("AI page-summary response not valid JSON: %s", e)
+        logger.warning("AI page-summary response not valid JSON: %s, %s", e, content)
         return None, []
 
     summary = parsed.get("summary")
@@ -493,7 +550,7 @@ async def extract_items_from_html(
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as e:
-        logger.warning("AI HTML extraction response not valid JSON: %s", e)
+        logger.warning("AI HTML extraction response not valid JSON: %s, %s", e, content)
         return []
 
     return _normalize_extracted_items(parsed, max_items=max_items)
@@ -518,7 +575,7 @@ def _parse_verdict_response(content: str) -> dict[str, Any] | None:
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as e:
-        logger.warning("Daily AI verdict response not valid JSON: %s", e)
+        logger.warning("Daily AI verdict response not valid JSON: %s, %s", e, content)
         return None
 
     summary = parsed.get("summary")
@@ -673,11 +730,10 @@ Key Ratios:
 - Net Profit Margin: {pct(report.get("profit_margin"))}
 
 {lang_instruction}Return valid JSON only with exactly these keys:
-{{
-  "summary": "2-3 sentences analyzing the company's financial position, recent performance, and outlook.",
-  "health_score": 0,
-  "potential_score": 0
-}}
+Each object keys:
+- summary (required, non-empty string)
+- health_score (required, integer 0-100)
+- potential_score (required, integer 0-100)
 
 Scoring rules:
 - health_score (0-100): Current financial health based on profitability, balance sheet strength, cash flow, and debt levels. 0 = near-bankruptcy/critical, 50 = average, 100 = exceptionally strong.
