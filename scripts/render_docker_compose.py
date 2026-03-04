@@ -41,7 +41,7 @@ def get_postgres_credentials(database_url: str) -> tuple[str, str]:
     return "kaki", "password"
 
 
-def render_template(template_path: str, config: dict) -> str:
+def render_template(template_path: str, config: dict, remote: bool = False) -> str:
     """Render docker-compose template with config values."""
     with open(template_path, "r") as f:
         template = f.read()
@@ -62,7 +62,34 @@ def render_template(template_path: str, config: dict) -> str:
     for placeholder, value in replacements.items():
         result = result.replace(placeholder, value)
 
+    # Remove ports section when deploying to remote
+    if remote:
+        result = _remove_ports(result)
+
     return result
+
+
+def _remove_ports(content: str) -> str:
+    """Remove ports sections from docker-compose content for remote deployment."""
+    import re
+
+    # Remove entire ports sections (including the "ports:" line and indented port mappings)
+    # Pattern matches "ports:" followed by indented lines starting with "-"
+    pattern = r'^\s+ports:\s*\n(?:\s+-\s+[^\n]*\n)*'
+    result = re.sub(pattern, '', content, flags=re.MULTILINE)
+
+    # Clean up extra blank lines left by removed ports
+    lines = result.split("\n")
+    cleaned = []
+    prev_empty = False
+    for line in lines:
+        is_empty = line.strip() == ""
+        if is_empty and prev_empty:
+            continue
+        cleaned.append(line)
+        prev_empty = is_empty
+
+    return "\n".join(cleaned)
 
 
 def main():
@@ -92,6 +119,11 @@ def main():
         action="store_true",
         help="Print to stdout instead of writing file",
     )
+    parser.add_argument(
+        "--remote",
+        action="store_true",
+        help="Generate config for remote deployment (no exposed ports)",
+    )
 
     args = parser.parse_args()
 
@@ -109,7 +141,7 @@ def main():
         sys.exit(1)
 
     config = load_config(str(config_path))
-    rendered = render_template(str(template_path), config)
+    rendered = render_template(str(template_path), config, args.remote)
 
     if args.dry_run:
         print(rendered)
