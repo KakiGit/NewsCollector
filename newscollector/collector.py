@@ -269,7 +269,7 @@ async def collect_platform(
                     save_item(
                         item.model_dump(mode="json"),
                         platform=result.platform,
-                        region=result.region,
+                        region=item.region,
                         db_url=(
                             config.get("storage", {}).get("database_url")
                             if config
@@ -336,7 +336,7 @@ async def collect_platform(
                 save_item(
                     item.model_dump(mode="json"),
                     platform=result.platform,
-                    region=result.region,
+                    region=item.region,
                     db_url=(
                         config.get("storage", {}).get("database_url")
                         if config
@@ -358,7 +358,7 @@ async def collect_platform(
                     save_item(
                         item.model_dump(mode="json"),
                         platform=result.platform,
-                        region=result.region,
+                        region=item.region,
                         db_url=(
                             config.get("storage", {}).get("database_url")
                             if config
