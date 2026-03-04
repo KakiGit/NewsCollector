@@ -9,8 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN playwright install --with-deps chromium
 
 # Copy application
-COPY config/ config/
-COPY newscollector/ newscollector/
+COPY config config/
+COPY newscollector newscollector/
 
 EXPOSE 8000
 
