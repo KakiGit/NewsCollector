@@ -116,7 +116,7 @@ log_info "Detected runtime: ${RUNTIME}"
 # Create required directories
 setup_directories() {
     log_info "Setting up directories..."
-    mkdir -p output/sqldata output/collected output/reports output/verdicts
+    mkdir -p output/sqldata
     mkdir -p config
 
     if [[ ! -f "config/config.yaml" ]]; then
@@ -172,6 +172,16 @@ start_compose() {
     local container_runtime="$1"
 
     log_info "Starting with ${container_runtime} compose..."
+
+    # Render and display docker-compose.yml
+    log_info "Rendering docker-compose.yml from template..."
+    python3 scripts/render_docker_compose.py -o "$COMPOSE_FILE"
+    log_ok "Rendered docker-compose.yml"
+    echo ""
+    cat "$COMPOSE_FILE"
+    echo ""
+    echo "=========================================="
+    echo ""
 
     # Build image if needed
     if [[ "$REBUILD" == "yes" ]]; then
