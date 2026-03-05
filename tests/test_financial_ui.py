@@ -16,7 +16,10 @@ from playwright.sync_api import Page, expect, sync_playwright
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 8770
 BASE_URL = f"http://{SERVER_HOST}:{SERVER_PORT}"
-PYTHON_BIN = "/workspaces/NewsCollector/.venv/bin/python"
+# Use venv if it exists, otherwise fall back to system python
+import os
+_venv_path = "/workspaces/NewsCollector/venv/bin/python"
+PYTHON_BIN = _venv_path if os.path.exists(_venv_path) else "/usr/bin/python3"
 
 
 def wait_for_server(host: str, port: int, timeout: int = 30) -> bool:
