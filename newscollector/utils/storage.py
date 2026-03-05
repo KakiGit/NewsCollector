@@ -771,6 +771,83 @@ def load_financial_reports(
     return _sanitize_floats([dict(r) for r in rows]), total
 
 
+def load_financial_history(
+    output_dir: Path | str | None = None,
+    *,
+    ticker: str | None = None,
+    report_period: str | None = None,
+    sector: str | None = None,
+    industry: str | None = None,
+    sort_by: str = "ticker",
+    limit: int | None = None,
+    offset: int | None = None,
+    db_url: str | None = None,
+) -> tuple[list[dict[str, Any]], int]:
+    """Load financial history records with optional filters and pagination.
+
+    Args:
+        ticker: Filter by ticker symbol (substring match).
+        report_period: Filter by report period (e.g. '2025-Q4').
+        sector: Filter by sector.
+        industry: Filter by industry.
+        sort_by: Sort field (default: ticker).
+        limit: Limit number of results.
+        offset: Offset for pagination.
+        db_url: Database URL override.
+
+    Returns:
+        Tuple of (records list, total count).
+    """
+    _ = output_dir  # deprecated
+    _resolve_db_url(db_url)
+
+    clauses: list[str] = []
+    params: dict[str, Any] = {}
+
+    if ticker:
+        clauses.append("ticker ILIKE %(ticker)s")
+        params["ticker"] = f"%{ticker}%"
+    if report_period:
+        clauses.append("report_period = %(report_period)s")
+        params["report_period"] = report_period
+    if sector:
+        clauses.append("sector = %(sector)s")
+        params["sector"] = sector
+    if industry:
+        clauses.append("industry = %(industry)s")
+        params["industry"] = industry
+
+    where_sql = "WHERE " + " AND ".join(clauses) if clauses else ""
+
+    # Validate sort field
+    valid_sort_fields = {"ticker", "company_name", "report_period", "report_date", "revenue", "collected_at"}
+    if sort_by not in valid_sort_fields:
+        sort_by = "ticker"
+    order_sql = f"ORDER BY {sort_by} ASC NULLS LAST"
+
+    count_query = f"SELECT COUNT(*) as total FROM financial_history {where_sql}"
+    query = f"SELECT * FROM financial_history {where_sql} {order_sql}"
+
+    if limit is not None:
+        query += " LIMIT %(limit)s"
+        params["limit"] = limit
+    if offset is not None:
+        query += " OFFSET %(offset)s"
+        params["offset"] = offset
+
+    with _use_connection() as conn:
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
+            cur.execute(count_query, params)
+            total_result = cur.fetchone()
+            total = total_result["total"] if total_result else 0
+
+            cur.execute(query, params)
+            rows = cur.fetchall()
+
+    return _sanitize_floats([dict(r) for r in rows]), total
+
+
 def save_financial_reports(
     reports: list[FinancialReport],
     output_dir: Path | str | None = None,
