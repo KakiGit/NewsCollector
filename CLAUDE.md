@@ -102,3 +102,6 @@ Config is loaded from `config/config.yaml`. Key sections:
 - `ai.ai_base_url`, `ai.ai_model`, `ai.ai_api_key` - LLM configuration
 - Platform-specific API keys (Twitter bearer token, YouTube API key, etc.)
 
+## Note for Debugging and Development
+
+* To check the frontend, run `python3 -m newscollector serve --port 9999` and check localhost:9999 for the page
