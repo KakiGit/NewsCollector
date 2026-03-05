@@ -20,6 +20,7 @@ from newscollector.models import FinancialReport
 from newscollector.utils.ai import analyze_financial_report, is_ai_configured
 from newscollector.utils.storage import (
     get_collected_tickers,
+    load_financial_history,
     load_financial_reports,
     save_financial_history_record,
     save_financial_reports,
@@ -536,6 +537,39 @@ def _has_meaningful_data(data: dict[str, Any]) -> bool:
     return any(data.get(f) is not None for f in key_fields)
 
 
+def _load_history_with_mapping(ticker_filter: str | None = None) -> list[dict[str, Any]]:
+    """Load financial history and map fields to financial_reports schema."""
+    history = load_financial_history(ticker=ticker_filter)
+    if not history:
+        return []
+
+    # Load companies for region info
+    companies = load_companies()
+
+    # Map fields from financial_history to financial_reports schema
+    for r in history:
+        # Convert report_period (e.g., "2025-Q4") to report_year, report_quarter, report_type
+        period = r.get("report_period", "")
+        if period:
+            if "-Q" in period:
+                parts = period.split("-Q")
+                r["report_year"] = int(parts[0])
+                r["report_quarter"] = int(parts[1])
+                r["report_type"] = "Quarterly"
+            elif "-FY" in period:
+                r["report_year"] = int(period.replace("-FY", ""))
+                r["report_quarter"] = 4  # FY is typically Q4
+                r["report_type"] = "Annual"
+        # Add required fields that AI expects
+        r["error"] = None
+        # Set regions from companies.yaml if available
+        ticker = r.get("ticker", "")
+        if ticker in companies:
+            r["regions"] = companies[ticker].get("regions", [])
+
+    return history
+
+
 async def collect_financial_reports(
     regions: list[str] | None = None,
     config: dict[str, Any] | None = None,
@@ -846,8 +880,8 @@ async def evaluate_financial_reports(
 ) -> int:
     """Re-evaluate existing financial reports with AI.
 
-    Loads already-collected reports, runs AI analysis on each, and saves
-    the updated reports back.
+    Loads already-collected reports from financial_history, runs AI analysis
+    on each, and saves the updated reports to financial_reports table.
 
     Args:
         config: Configuration dict (must have AI configured).
@@ -864,25 +898,57 @@ async def evaluate_financial_reports(
         logger.error("AI is not configured — cannot evaluate reports")
         return 0
 
-    reports, _ = load_financial_reports(output_dir)
-    if not reports:
-        logger.warning("No financial reports found to evaluate")
-        return 0
+    # Try loading from financial_reports first (original behavior)
+    reports, total_count = load_financial_reports(output_dir)
 
-    # Always exclude reports that have errors or no meaningful data
-    targets = [r for r in reports if not r.get("error") and _has_meaningful_data(r)]
+    # If financial_reports is empty or targets are empty after filtering, fall back to financial_history
+    if not reports:
+        logger.info("financial_reports table empty, reading from financial_history")
+        reports = _load_history_with_mapping(ticker_filter)
+
+    # If no targets match after filtering, try history as fallback
+    targets = [r for r in reports if _has_meaningful_data(r)]
     if region:
-        region_lower = region.lower()
-        targets = [
-            r
-            for r in targets
-            if region_lower in [reg.lower() for reg in (r.get("regions") or [])]
-        ]
+        companies = load_companies(regions=[region])
+        region_tickers = set(companies.keys())
+        targets = [r for r in targets if r.get("ticker") in region_tickers]
     if ticker_filter:
         tf = ticker_filter.upper()
         targets = [r for r in targets if tf in (r.get("ticker") or "").upper()]
-    if only_missing:
-        # Check for missing health_score as indicator of missing AI evaluation
+
+    if not targets and not reports:
+        # No data at all
+        logger.warning("No financial reports found to evaluate")
+        return 0
+    elif not targets and reports:
+        # Have data but filtered out - try history as fallback
+        logger.info("No reports match filter in financial_reports, trying financial_history")
+        reports = _load_history_with_mapping(ticker_filter)
+        targets = [r for r in reports if _has_meaningful_data(r)]
+        if region:
+            companies = load_companies(regions=[region])
+            region_tickers = set(companies.keys())
+            targets = [r for r in targets if r.get("ticker") in region_tickers]
+        if ticker_filter:
+            tf = ticker_filter.upper()
+            targets = [r for r in targets if tf in (r.get("ticker") or "").upper()]
+
+    # Filter for meaningful data
+    targets = [r for r in reports if _has_meaningful_data(r)]
+
+    # Region filtering - need to get region info from companies.yaml
+    if region:
+        companies = load_companies(regions=[region])
+        region_tickers = set(companies.keys())
+        targets = [r for r in targets if r.get("ticker") in region_tickers]
+
+    if ticker_filter:
+        tf = ticker_filter.upper()
+        targets = [r for r in targets if tf in (r.get("ticker") or "").upper()]
+
+    # For financial_history, we don't have health_score, so only_missing is always True
+    # (we haven't evaluated any history records yet)
+    if only_missing and not reports:
         targets = [r for r in targets if r.get("health_score") is None]
 
     if not targets:
@@ -925,7 +991,7 @@ async def evaluate_financial_reports(
                 by_ticker[ticker]["health_score"] = health
                 by_ticker[ticker]["potential_score"] = potential
                 evaluated += 1
-                # Save immediately after successful evaluation
+                # Save to financial_reports table
                 upsert_financial_report(by_ticker[ticker], output_dir=output_dir)
                 if progress_callback:
                     progress_callback(idx, total, ticker, "done")
