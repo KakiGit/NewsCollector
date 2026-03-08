@@ -409,7 +409,7 @@
 
     <!-- ===== Financial Reports Filter Bar ===== -->
     <div x-show="viewMode === 'financial' && financialSubTab === 'reports'" class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
         <!-- Region -->
         <div>
           <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Region / List</label>
@@ -457,6 +457,34 @@
             <input type="text" x-model.debounce.300ms="finSearchQuery" @input="fetchFinancialReports()"
                    placeholder="Search by company name, ticker, sector..."
                    class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Report Period Slider -->
+        <div class="lg:col-span-6">
+          <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Report Period</label>
+          <div class="flex items-center gap-4">
+            <input type="range" x-model="finReportPeriodIdx" @input="fetchFinancialReports()"
+                   min="0" :max="availablePeriods.length > 0 ? availablePeriods.length - 1 : 0" step="1"
+                   class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
+            <div class="flex flex-col items-center min-w-[100px] px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-200">
+              <span class="text-base font-bold text-indigo-700" x-text="formatPeriodDisplay()"></span>
+              <span class="text-[10px] text-gray-600" x-text="getCurrentPeriodCount() + ' companies'"></span>
+            </div>
+          </div>
+          <!-- Period labels below slider -->
+          <div class="flex justify-between mt-2 text-[10px] text-gray-400 px-1" x-show="availablePeriods.length > 0">
+            <span x-text="availablePeriods[0]?.period || ''"></span>
+            <span x-text="availablePeriods.length > 1 ? (availablePeriods[Math.floor(availablePeriods.length / 2)]?.period || '') : ''"></span>
+            <span x-text="availablePeriods.length > 2 ? (availablePeriods[availablePeriods.length - 1]?.period || '') : ''"></span>
+          </div>
+          <!-- All periods toggle -->
+          <div class="mt-2">
+            <button @click="finReportPeriodIdx = -1; fetchFinancialReports()"
+                    :class="finReportPeriodIdx === -1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                    class="px-3 py-1 text-xs font-medium rounded-md transition-colors">
+              All Periods
+            </button>
           </div>
         </div>
       </div>
@@ -1151,6 +1179,9 @@
         finAvgHealth: '--',
         finAvgPotential: '--',
         finSectorCount: 0,
+        // Period filter state
+        availablePeriods: [], // [{period: "26Q1", year: 2026, quarter: 1, count: N}]
+        finReportPeriodIdx: -1, // Index into availablePeriods, -1 for all periods (shows latest per ticker by default)
         // Pagination state - Financial reports
         finPagination: {
           total: 0,
@@ -1281,6 +1312,7 @@
               finStatusFilter: this.finStatusFilter,
               finViewMode: this.finViewMode,
               financialSubTab: this.financialSubTab,
+              finReportPeriodIdx: this.finReportPeriodIdx,
             };
             localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify(state));
           } catch (_) {}
@@ -1335,6 +1367,10 @@
               } else if (this.financialSubTab === 'scores') {
                 await this.fetchCompanyScores();
               }
+            }
+            // Restore period filter index (will be applied after periods are loaded)
+            if (typeof state.finReportPeriodIdx === 'number') {
+              this.finReportPeriodIdx = state.finReportPeriodIdx;
             }
           } catch (_) {}
         },
@@ -1438,6 +1474,10 @@
             const params = new URLSearchParams();
             if (this.finSelectedRegion) params.set('region', this.finSelectedRegion);
             if (this.finSearchQuery) params.set('search', this.finSearchQuery);
+            // Add period filter params
+            const periodParams = this.getPeriodQueryParams();
+            if (periodParams.has('report_year')) params.set('report_year', periodParams.get('report_year'));
+            if (periodParams.has('report_quarter')) params.set('report_quarter', periodParams.get('report_quarter'));
             const data = await this.api('/api/financial-reports?' + params.toString());
             let reports = data.reports || [];
             if (this.finStatusFilter) {
@@ -1445,6 +1485,8 @@
             }
             this.financialReports = reports;
             this.finWithAI = data.with_ai || 0;
+            // Update available periods after loading reports
+            this.updateAvailablePeriods();
             this.sortFinancialReports();
             this.computeFinStats();
           } catch (e) {
@@ -1460,26 +1502,41 @@
           this.financialReports.sort((a, b) => {
             switch (key) {
               case 'health_desc': {
-                const aS = a.health_score ?? -1, bS = b.health_score ?? -1;
-                return bS - aS;
+                const aHas = a.health_score != null, bHas = b.health_score != null;
+                if (!aHas && !bHas) return 0;
+                if (!aHas) return 1;
+                if (!bHas) return -1;
+                return b.health_score - a.health_score;
               }
               case 'health_asc': {
-                const aS = a.health_score ?? 101, bS = b.health_score ?? 101;
-                return aS - bS;
+                const aHas = a.health_score != null, bHas = b.health_score != null;
+                if (!aHas && !bHas) return 0;
+                if (!aHas) return 1;
+                if (!bHas) return -1;
+                return a.health_score - b.health_score;
               }
               case 'potential_desc': {
-                const aS = a.potential_score ?? -1, bS = b.potential_score ?? -1;
-                return bS - aS;
+                const aHas = a.potential_score != null, bHas = b.potential_score != null;
+                if (!aHas && !bHas) return 0;
+                if (!aHas) return 1;
+                if (!bHas) return -1;
+                return b.potential_score - a.potential_score;
               }
               case 'potential_asc': {
-                const aS = a.potential_score ?? 101, bS = b.potential_score ?? 101;
-                return aS - bS;
+                const aHas = a.potential_score != null, bHas = b.potential_score != null;
+                if (!aHas && !bHas) return 0;
+                if (!aHas) return 1;
+                if (!bHas) return -1;
+                return a.potential_score - b.potential_score;
               }
               case 'name_asc':
                 return (a.company_name || '').localeCompare(b.company_name || '');
               case 'market_cap_desc': {
-                const aM = a.market_cap ?? 0, bM = b.market_cap ?? 0;
-                return bM - aM;
+                const aHas = a.market_cap != null && a.market_cap > 0, bHas = b.market_cap != null && b.market_cap > 0;
+                if (!aHas && !bHas) return 0;
+                if (!aHas) return 1;
+                if (!bHas) return -1;
+                return b.market_cap - a.market_cap;
               }
               default: return 0;
             }
@@ -1811,6 +1868,57 @@
             global_500: 'Global Top 500',
           };
           return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        },
+
+        // Period filter helpers
+        updateAvailablePeriods() {
+          const periodMap = new Map();
+          this.financialReports.forEach(r => {
+            const year = r.report_year;
+            const quarter = r.report_quarter;
+            if (year && quarter !== null && quarter !== undefined) {
+              const shortYear = year % 100;
+              const qNum = quarter === 0 ? 'FY' : `Q${quarter}`;
+              const key = `${shortYear}${qNum}`;
+              const sortKey = year * 10 + (quarter === 0 ? 4 : quarter);
+              if (!periodMap.has(key)) {
+                periodMap.set(key, { period: key, year, quarter, sortKey, count: 0 });
+              }
+              periodMap.get(key).count++;
+            }
+          });
+          this.availablePeriods = Array.from(periodMap.values())
+            .sort((a, b) => b.sortKey - a.sortKey);
+          if (this.availablePeriods.length > 0 && this.finReportPeriodIdx === 0) {
+            this.finReportPeriodIdx = 0;
+          }
+        },
+
+        formatPeriodDisplay() {
+          if (this.finReportPeriodIdx === -1) return 'All Periods';
+          const p = this.availablePeriods[this.finReportPeriodIdx];
+          if (!p) return 'Select period';
+          return p.period.replace('FY', ' (Annual)');
+        },
+
+        getCurrentPeriodCount() {
+          if (this.finReportPeriodIdx === -1) {
+            return this.financialReports.length;
+          }
+          const p = this.availablePeriods[this.finReportPeriodIdx];
+          return p ? p.count : 0;
+        },
+
+        getPeriodQueryParams() {
+          const params = new URLSearchParams();
+          if (this.finReportPeriodIdx !== -1 && this.finReportPeriodIdx < this.availablePeriods.length) {
+            const p = this.availablePeriods[this.finReportPeriodIdx];
+            if (p) {
+              params.set('report_year', String(p.year));
+              params.set('report_quarter', String(p.quarter));
+            }
+          }
+          return params;
         },
 
         // Company Scores computed
