@@ -1206,7 +1206,8 @@ def save_financial_history_record(
                     revenue, net_income, gross_profit, operating_income, ebitda,
                     total_assets, total_liabilities, total_equity, cash, total_debt,
                     operating_cash_flow, free_cash_flow, market_cap, pe_ratio,
-                    revenue_growth, profit_margin, collected_at
+                    revenue_growth, profit_margin, collected_at,
+                    summary, health_score, potential_score, analyzed_at
                 )
                 VALUES (
                     %(ticker)s, %(report_period)s, %(report_date)s, %(company_name)s,
@@ -1215,7 +1216,8 @@ def save_financial_history_record(
                     %(ebitda)s, %(total_assets)s, %(total_liabilities)s, %(total_equity)s,
                     %(cash)s, %(total_debt)s, %(operating_cash_flow)s, %(free_cash_flow)s,
                     %(market_cap)s, %(pe_ratio)s, %(revenue_growth)s, %(profit_margin)s,
-                    %(collected_at)s
+                    %(collected_at)s,
+                    %(summary)s, %(health_score)s, %(potential_score)s, %(analyzed_at)s
                 )
                 ON CONFLICT (ticker, report_period) DO UPDATE SET
                     company_name = EXCLUDED.company_name,
@@ -1238,12 +1240,20 @@ def save_financial_history_record(
                     pe_ratio = EXCLUDED.pe_ratio,
                     revenue_growth = EXCLUDED.revenue_growth,
                     profit_margin = EXCLUDED.profit_margin,
-                    collected_at = EXCLUDED.collected_at;
+                    collected_at = EXCLUDED.collected_at,
+                    summary = COALESCE(EXCLUDED.summary, financial_history.summary),
+                    health_score = COALESCE(EXCLUDED.health_score, financial_history.health_score),
+                    potential_score = COALESCE(EXCLUDED.potential_score, financial_history.potential_score),
+                    analyzed_at = COALESCE(EXCLUDED.analyzed_at, financial_history.analyzed_at);
                 """,
                 {
                     **clean,
                     "collected_at": clean.get("collected_at")
                     or datetime.now(timezone.utc),
+                    "summary": clean.get("summary"),
+                    "health_score": clean.get("health_score"),
+                    "potential_score": clean.get("potential_score"),
+                    "analyzed_at": clean.get("analyzed_at"),
                 },
             )
         conn.commit()
