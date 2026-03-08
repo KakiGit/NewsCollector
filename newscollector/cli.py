@@ -28,8 +28,13 @@ from newscollector.financial import (
     collect_financial_reports,
     evaluate_financial_reports,
     get_available_regions,
+    load_companies,
     update_companies_yaml,
+    is_data_fresh,
+    collect_and_save_to_history,
+    analyze_financial_history_records,
 )
+from newscollector.utils.storage import load_collected_items, get_latest_collection_date
 from newscollector.utils.storage import load_collected_items
 
 
@@ -382,6 +387,239 @@ def verdict(
         click.echo(click.style("\nNo verdicts generated.", fg="yellow"))
 
 
+@cli.command("collect-financial-reports")
+@click.option(
+    "--region",
+    "-r",
+    multiple=True,
+    help="Region(s) to collect (e.g. us_300, china_300, finland_100, europe_300, global_500). "
+    "Can be specified multiple times. Defaults to all.",
+)
+@click.option(
+    "--history",
+    "-H",
+    is_flag=True,
+    default=False,
+    help="Collect historical data (last N quarters, default 8) instead of latest only.",
+)
+@click.option(
+    "--periods",
+    "-n",
+    default=8,
+    type=int,
+    help="Number of periods to collect for --history (default: 8 = 2 years).",
+)
+@click.option(
+    "--force",
+    "-F",
+    is_flag=True,
+    default=False,
+    help="Force refresh even if data is less than 3 months old.",
+)
+@click.option(
+    "--ai-analyze",
+    "-a",
+    is_flag=True,
+    default=False,
+    help="Run AI analysis on collected or filtered reports.",
+)
+@click.option(
+    "--only-missing",
+    "-m",
+    is_flag=True,
+    default=False,
+    help="Only analyze reports missing AI summary (use with --ai-analyze).",
+)
+@click.option(
+    "--period",
+    "-p",
+    default=None,
+    help="Filter by period for AI analysis (e.g. 2024-FY, 2024-Q4).",
+)
+@click.option(
+    "--ticker",
+    "-t",
+    default=None,
+    help="Filter by ticker substring for AI analysis (e.g. AAPL).",
+)
+@click.option(
+    "--config",
+    "-c",
+    "config_path",
+    default=None,
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to config.yaml file.",
+)
+@click.option(
+    "--delay",
+    "-d",
+    default=0.5,
+    show_default=True,
+    type=float,
+    help="Delay in seconds between yfinance requests (rate limiting).",
+)
+@click.option(
+    "--verbose", "-v", is_flag=True, default=False, help="Enable verbose logging."
+)
+def collect_financial_reports_cmd(
+    region: tuple[str, ...],
+    history: bool,
+    periods: int,
+    force: bool,
+    ai_analyze: bool,
+    only_missing: bool,
+    period: str | None,
+    ticker: str | None,
+    config_path: Path | None,
+    delay: float,
+    verbose: bool,
+) -> None:
+    """Collect financial reports and optionally analyze with AI.
+
+    Default behavior: Collect latest report per company (skips if data is < 3 months old).
+
+    Examples:
+        collect-financial-reports --region us_300          # Collect latest
+        collect-financial-reports --history --region us    # Collect 8 quarters
+        collect-financial-reports --ai-analyze --region us # AI analysis only
+        collect-financial-reports --region us --ai-analyze # Collect + analyze
+        collect-financial-reports --force --region us      # Force refresh
+    """
+    _setup_logging(verbose)
+
+    config = load_config(config_path)
+
+    # Validate region names
+    available_regions = get_available_regions()
+    regions: list[str] | None = None
+    if region:
+        for r in region:
+            if r not in available_regions:
+                click.echo(
+                    f"Error: Unknown region '{r}'. "
+                    f"Available: {', '.join(available_regions)}"
+                )
+                sys.exit(1)
+        regions = list(region)
+
+    region_display = ", ".join(regions) if regions else "all regions"
+
+    # Determine mode: collection, analysis, or both
+    # Skip collection if only AI analysis is requested without region filter
+    collection_mode = not ai_analyze or regions or history or force
+    analysis_mode = ai_analyze
+
+    def progress_cb(current: int, total: int, tkr: str, status: str) -> None:
+        symbols = {
+            "checking": ".",
+            "skipped": "~",
+            "fetching": ">",
+            "done": "+",
+            "error": "!",
+            "no_data": "-",
+            "analyzing": "A",
+            "failed": "x",
+        }
+        s = symbols.get(status, "?")
+        click.echo(f"\r  [{current}/{total}] {s} {tkr:<20}", nl=False)
+        if status in ("done", "error", "skipped", "no_data", "failed"):
+            click.echo()
+
+    collected_count = 0
+    analyzed_count = 0
+
+    # Collection phase
+    if collection_mode:
+        max_periods = 1 if not history else periods
+
+        # Check freshness for latest-only mode
+        if max_periods == 1 and not force and regions:
+            # Check if we have fresh data for any ticker in the regions
+            companies = load_companies(regions=regions)
+            fresh_count = sum(1 for t in companies if is_data_fresh(t, max_age_days=90))
+            stale_count = len(companies) - fresh_count
+
+            if fresh_count > 0 and stale_count == 0:
+                click.echo(
+                    click.style(
+                        f"\nAll {fresh_count} companies have fresh data (< 90 days). "
+                        "Use --force to refresh.",
+                        fg="yellow",
+                    )
+                )
+                if not analysis_mode:
+                    return
+            elif fresh_count > 0:
+                click.echo(
+                    f"Skipping {fresh_count} companies with fresh data, "
+                    f"collecting {stale_count} stale entries..."
+                )
+
+        click.echo(
+            f"Collecting {'history (' + str(periods) + ' periods)' if history else 'latest reports'} "
+            f"for: {region_display}"
+        )
+
+        history_data = asyncio.run(
+            collect_and_save_to_history(
+                regions=regions,
+                config=config,
+                max_periods=max_periods,
+                batch_delay=delay,
+                progress_callback=progress_cb,
+            )
+        )
+        collected_count = len(history_data)
+
+        unique_tickers = len(
+            set(r.get("ticker") for r in history_data if r.get("ticker"))
+        )
+        click.echo("\n--- Collection Summary ---")
+        click.echo(
+            f"  Records collected: {click.style(str(collected_count), fg='green')}"
+        )
+        click.echo(f"  Unique tickers:    {unique_tickers}")
+
+    # Analysis phase
+    if analysis_mode:
+        if not regions and not period and not ticker:
+            click.echo("Running AI analysis on existing financial history...")
+        else:
+            filters = []
+            if regions:
+                filters.append(f"region={', '.join(regions)}")
+            if period:
+                filters.append(f"period={period}")
+            if ticker:
+                filters.append(f"ticker={ticker}")
+            if only_missing:
+                filters.append("only missing AI")
+            click.echo(f"Running AI analysis with filters: {', '.join(filters)}")
+
+        analyzed_count = asyncio.run(
+            analyze_financial_history_records(
+                config=config,
+                region=regions[0] if regions and len(regions) == 1 else None,
+                ticker_filter=ticker,
+                period_filter=period,
+                only_missing=only_missing,
+                progress_callback=progress_cb,
+            )
+        )
+
+        click.echo("\n--- AI Analysis Summary ---")
+        click.echo(
+            f"  Records analyzed: {click.style(str(analyzed_count), fg='green')}"
+        )
+
+    # Final summary
+    click.echo("\n--- Overall Summary ---")
+    if collection_mode:
+        click.echo(f"  Collected: {click.style(str(collected_count), fg='green')}")
+    if analysis_mode:
+        click.echo(f"  Analyzed:  {click.style(str(analyzed_count), fg='green')}")
+
+
 @cli.command("collect-reports")
 @click.option(
     "--region",
@@ -425,14 +663,23 @@ def collect_reports_cmd(
 ) -> None:
     """Collect financial reports for top companies using yfinance.
 
-    DEPRECATED: Use 'collect-history --latest' instead.
-    This command is kept for backward compatibility.
+    DEPRECATED: Use 'collect-financial-reports' instead.
+    This command will be removed in v2.0.
 
     Fetches the latest available financial report for each company,
     analyzes it with AI (if configured), and assigns Health and
     Potential scores. Reports already collected are skipped.
     """
     _setup_logging(verbose)
+
+    click.echo(
+        click.style(
+            "DEPRECATED: Use 'collect-financial-reports' instead. "
+            "This command will be removed in v2.0.",
+            fg="yellow",
+            bold=True,
+        )
+    )
 
     config = load_config(config_path)
 
@@ -558,14 +805,22 @@ def collect_history_cmd(
 ) -> None:
     """Collect financial data - latest report or historical data for trend analysis.
 
-    By default collects historical quarterly data (last 8 quarters = 2 years).
-    Use --latest to collect only the most recent report (like collect-reports).
+    DEPRECATED: Use 'collect-financial-reports' instead.
+    This command will be removed in v2.0.
 
     Examples:
         collect-history --region us_300              # Collect 8 quarters history
         collect-history --region us_300 --latest    # Collect latest report only
         collect-history --region us_300 --latest --ai-analyze  # Latest + AI scores
     """
+    click.echo(
+        click.style(
+            "DEPRECATED: Use 'collect-financial-reports' instead. "
+            "This command will be removed in v2.0.",
+            fg="yellow",
+            bold=True,
+        )
+    )
     _setup_logging(verbose)
 
     # Load config to get database URL
@@ -703,12 +958,24 @@ def evaluate_reports_cmd(
 ) -> None:
     """Re-evaluate financial reports with AI.
 
+    DEPRECATED: Use 'collect-financial-reports --ai-analyze' instead.
+    This command will be removed in v2.0.
+
     Runs AI analysis on already-collected financial reports to generate
     or regenerate summaries, Health scores, and Potential scores. Useful
     when reports were collected without AI, or to re-evaluate with a
     different model.
     """
     _setup_logging(verbose)
+
+    click.echo(
+        click.style(
+            "DEPRECATED: Use 'collect-financial-reports --ai-analyze' instead. "
+            "This command will be removed in v2.0.",
+            fg="yellow",
+            bold=True,
+        )
+    )
 
     config = load_config(config_path)
 

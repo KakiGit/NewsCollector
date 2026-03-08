@@ -537,7 +537,9 @@ def _has_meaningful_data(data: dict[str, Any]) -> bool:
     return any(data.get(f) is not None for f in key_fields)
 
 
-def _load_history_with_mapping(ticker_filter: str | None = None) -> list[dict[str, Any]]:
+def _load_history_with_mapping(
+    ticker_filter: str | None = None,
+) -> list[dict[str, Any]]:
     """Load financial history and map fields to financial_reports schema."""
     history = load_financial_history(ticker=ticker_filter)
     if not history:
@@ -922,7 +924,9 @@ async def evaluate_financial_reports(
         return 0
     elif not targets and reports:
         # Have data but filtered out - try history as fallback
-        logger.info("No reports match filter in financial_reports, trying financial_history")
+        logger.info(
+            "No reports match filter in financial_reports, trying financial_history"
+        )
         reports = _load_history_with_mapping(ticker_filter)
         targets = [r for r in reports if _has_meaningful_data(r)]
         if region:
@@ -1256,3 +1260,236 @@ def get_available_regions() -> list[str]:
         data = yaml.safe_load(f) or {}
     companies = data.get("companies") or {}
     return sorted(companies.keys())
+
+
+def is_data_fresh(ticker: str, max_age_days: int = 90) -> bool:
+    """Check if ticker has data collected within max_age_days.
+
+    Args:
+        ticker: Stock ticker symbol to check.
+        max_age_days: Maximum age in days for data to be considered fresh (default: 90).
+
+    Returns:
+        True if data is fresh (collected within max_age_days), False otherwise.
+    """
+    from newscollector.utils.storage import get_latest_collection_date
+
+    latest = get_latest_collection_date(ticker)
+    if not latest:
+        return False
+    return (datetime.now(timezone.utc) - latest).days < max_age_days
+
+
+async def collect_and_save_to_history(
+    regions: list[str] | None = None,
+    config: dict[str, Any] | None = None,
+    max_periods: int = 8,
+    batch_delay: float = 0.5,
+    progress_callback: Any | None = None,
+) -> list[dict[str, Any]]:
+    """Collect financial data and save to financial_history table.
+
+    Args:
+        regions: List of region keys to collect from.
+        config: Configuration dict for AI settings.
+        max_periods: Number of periods to collect (1 = latest only, 8 = 2 years).
+        batch_delay: Delay in seconds between yfinance requests.
+        progress_callback: Optional callback for progress updates.
+
+    Returns:
+        List of collected historical records.
+    """
+    companies = load_companies(regions=regions)
+    if not companies:
+        logger.warning("No companies to collect")
+        return []
+
+    from newscollector.utils.storage import save_financial_history_record
+
+    total = len(companies)
+    all_history: list[dict[str, Any]] = []
+    errors = 0
+    loop = asyncio.get_running_loop()
+
+    for idx, (ticker, info) in enumerate(companies.items(), 1):
+        company_name = info["name"]
+
+        if progress_callback:
+            progress_callback(idx, total, ticker, "fetching")
+
+        try:
+            if max_periods == 1:
+                data = await loop.run_in_executor(
+                    None, partial(_fetch_company_data, ticker, company_name)
+                )
+                if data and _has_meaningful_data(data):
+                    year, quarter, report_type = _parse_report_period(
+                        data.get("report_period")
+                    )
+                    record = {
+                        "ticker": ticker,
+                        "report_period": data.get("report_period"),
+                        "report_year": year,
+                        "report_quarter": quarter if quarter else 4,
+                        "report_type": report_type,
+                        "report_date": datetime.now().date(),
+                        "company_name": data.get("company_name") or company_name,
+                        "sector": data.get("sector"),
+                        "industry": data.get("industry"),
+                        "currency": data.get("currency"),
+                        "revenue": data.get("revenue"),
+                        "net_income": data.get("net_income"),
+                        "gross_profit": data.get("gross_profit"),
+                        "operating_income": data.get("operating_income"),
+                        "ebitda": data.get("ebitda"),
+                        "total_assets": data.get("total_assets"),
+                        "total_liabilities": data.get("total_liabilities"),
+                        "total_equity": data.get("total_equity"),
+                        "cash": data.get("cash"),
+                        "total_debt": data.get("total_debt"),
+                        "operating_cash_flow": data.get("operating_cash_flow"),
+                        "free_cash_flow": data.get("free_cash_flow"),
+                        "market_cap": data.get("market_cap"),
+                        "pe_ratio": data.get("pe_ratio"),
+                        "revenue_growth": data.get("revenue_growth"),
+                        "profit_margin": data.get("profit_margin"),
+                        "collected_at": datetime.now(timezone.utc),
+                    }
+                    save_financial_history_record(record)
+                    all_history.append(record)
+                else:
+                    errors += 1
+            else:
+                history = await loop.run_in_executor(
+                    None,
+                    partial(_fetch_company_history, ticker, company_name, max_periods),
+                )
+                if history:
+                    for record in history:
+                        record["ticker"] = ticker
+                        save_financial_history_record(record)
+                    all_history.extend(history)
+                else:
+                    errors += 1
+
+            if progress_callback:
+                progress_callback(idx, total, ticker, "done")
+
+        except Exception as e:
+            logger.warning("Error collecting for %s: %s", ticker, e)
+            errors += 1
+            if progress_callback:
+                progress_callback(idx, total, ticker, "error")
+
+        await asyncio.sleep(batch_delay)
+
+    logger.info(
+        "Collection complete: %d records collected, %d errors",
+        len(all_history),
+        errors,
+    )
+    return all_history
+
+
+async def analyze_financial_history_records(
+    config: dict[str, Any],
+    region: str | None = None,
+    ticker_filter: str | None = None,
+    period_filter: str | None = None,
+    only_missing: bool = False,
+    progress_callback: Any | None = None,
+) -> int:
+    """Run AI analysis on financial_history records.
+
+    Args:
+        config: Configuration dict with AI settings.
+        region: Optional region filter.
+        ticker_filter: Optional ticker substring filter.
+        period_filter: Optional period filter (e.g., '2024-FY', '2024-Q4').
+        only_missing: If True, only analyze records without health_score.
+        progress_callback: Optional callback for progress updates.
+
+    Returns:
+        Number of records successfully analyzed.
+    """
+    from newscollector.utils.storage import load_financial_history
+    from newscollector.utils.ai import analyze_financial_report
+
+    if not is_ai_configured(config):
+        logger.error("AI is not configured — cannot analyze reports")
+        return 0
+
+    records, _ = load_financial_history()
+    if not records:
+        logger.warning("No financial history records found")
+        return 0
+
+    targets = [r for r in records if _has_meaningful_data(r)]
+
+    if region:
+        companies = load_companies(regions=[region])
+        region_tickers = set(companies.keys())
+        targets = [r for r in targets if r.get("ticker") in region_tickers]
+
+    if ticker_filter:
+        tf = ticker_filter.upper()
+        targets = [r for r in targets if tf in (r.get("ticker") or "").upper()]
+
+    if period_filter:
+        targets = [r for r in targets if r.get("report_period") == period_filter]
+
+    if only_missing:
+        targets = [r for r in targets if r.get("health_score") is None]
+
+    if not targets:
+        logger.info("No records match the filter criteria")
+        return 0
+
+    ai_cfg = config.get("ai") or {}
+    base_url = ai_cfg.get("ai_base_url", "")
+    model = ai_cfg.get("ai_model", "")
+    api_key = ai_cfg.get("ai_api_key", "")
+    response_language = ai_cfg.get("ai_response_language") or None
+    ai_timeout = float(ai_cfg.get("ai_request_timeout", 60.0))
+    ai_json_retry = int(ai_cfg.get("ai_json_number_retry", 3))
+
+    from newscollector.utils.storage import save_financial_history_record
+
+    total = len(targets)
+    analyzed = 0
+
+    for idx, record in enumerate(targets, 1):
+        ticker = record.get("ticker", "???")
+
+        if progress_callback:
+            progress_callback(idx, total, ticker, "analyzing")
+
+        try:
+            summary, health, potential = await analyze_financial_report(
+                record,
+                base_url=base_url,
+                model=model,
+                api_key=api_key,
+                response_language=response_language,
+                timeout=ai_timeout,
+                ai_json_number_retry=ai_json_retry,
+            )
+            if summary:
+                record["summary"] = summary
+                record["health_score"] = health
+                record["potential_score"] = potential
+                record["analyzed_at"] = datetime.now(timezone.utc)
+                save_financial_history_record(record)
+                analyzed += 1
+                if progress_callback:
+                    progress_callback(idx, total, ticker, "done")
+            else:
+                if progress_callback:
+                    progress_callback(idx, total, ticker, "failed")
+        except Exception as e:
+            logger.warning("AI analysis failed for %s: %s", ticker, e)
+            if progress_callback:
+                progress_callback(idx, total, ticker, "error")
+
+    logger.info("Analyzed %d / %d records", analyzed, total)
+    return analyzed
