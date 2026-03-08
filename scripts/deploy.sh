@@ -145,6 +145,7 @@ if ssh "$REMOTE_HOST" "${REMOTE_CTR} ps --filter name=newscollector --format '{{
     echo ""
     echo "Container details:"
     ssh "$REMOTE_HOST" "${REMOTE_CTR} ps --filter name=newscollector --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+    ssh "$REMOTE_HOST" podman restart nginx
 else
     log_error "Container may have failed to start. Check logs with:"
     echo "  ssh ${REMOTE_HOST} ${REMOTE_CTR} logs newscollector"
