@@ -25,7 +25,7 @@ from newscollector.utils.storage import (
     list_regions,
     load_daily_verdicts,
     load_financial_history,
-    load_financial_reports,
+    load_financial_history_simple,
     query_collected_items,
 )
 
@@ -311,15 +311,69 @@ async def api_financial_reports(
     include_errors: bool = Query(default=False),
     sort_by: str = Query(default="health_score"),
     offset: int | None = Query(default=0, ge=0),
+    latest_only: bool = Query(default=True),
+    report_year: int | None = Query(default=None),
+    report_quarter: int | None = Query(default=None),
 ):
     """Return collected financial reports with optional filters and pagination."""
-    reports, total = load_financial_reports(
+    _key_fields = (
+        "revenue",
+        "net_income",
+        "total_assets",
+        "total_equity",
+        "market_cap",
+        "ebitda",
+        "gross_profit",
+    )
+
+    def _inject_data_status(report: dict) -> None:
+        """Inject data_status field into a report dict."""
+        has_data = any(report.get(f) is not None for f in _key_fields)
+        has_ai = report.get("summary") is not None
+        if report.get("error"):
+            report["data_status"] = "error"
+        elif not has_data:
+            report["data_status"] = "no_data"
+        elif not has_ai:
+            report["data_status"] = "pending_ai"
+        else:
+            report["data_status"] = "complete"
+
+    # Get summary stats from database (full filtered count)
+    # Use latest_only=True for stats to match the main query
+    all_reports, _ = load_financial_history(
         region=region,
         search=search,
-        include_errors=include_errors,
+        latest_only=True,
+        db_url=_db_url,
+    )
+
+    # Convert all monetary values to USD for all_reports
+    currencies = {(r.get("currency") or "USD").upper() for r in all_reports}
+    if currencies - {"USD"}:
+        rates = await _get_exchange_rates(currencies)
+        all_reports = [_convert_report_to_usd(r, rates) for r in all_reports]
+
+    # Inject data_status into all_reports for stats calculation
+    for r in all_reports:
+        _inject_data_status(r)
+
+    total_with_data = sum(
+        1 for r in all_reports if r.get("data_status") in ("pending_ai", "complete")
+    )
+    total_with_ai = sum(1 for r in all_reports if r.get("data_status") == "complete")
+
+    # Load paginated reports from financial_history
+    reports, total = load_financial_history(
+        region=region,
+        search=search,
         sort_by=sort_by,
         limit=None,  # No limit - show all items
         offset=offset,
+        latest_only=latest_only,
+        report_period=f"{report_year}-Q{report_quarter}"
+        if report_year and report_quarter
+        else None,
         db_url=_db_url,
     )
 
@@ -330,38 +384,8 @@ async def api_financial_reports(
         reports = [_convert_report_to_usd(r, rates) for r in reports]
 
     # Inject a 'data_status' field for UI display
-    _key_fields = (
-        "revenue",
-        "net_income",
-        "total_assets",
-        "total_equity",
-        "market_cap",
-        "ebitda",
-        "gross_profit",
-    )
     for r in reports:
-        has_data = any(r.get(f) is not None for f in _key_fields)
-        has_ai = r.get("summary") is not None
-        if r.get("error"):
-            r["data_status"] = "error"
-        elif not has_data:
-            r["data_status"] = "no_data"
-        elif not has_ai:
-            r["data_status"] = "pending_ai"
-        else:
-            r["data_status"] = "complete"
-
-    # Get summary stats from database (full filtered count)
-    all_reports, _ = load_financial_reports(
-        region=region,
-        search=search,
-        include_errors=include_errors,
-        db_url=_db_url,
-    )
-    total_with_data = sum(
-        1 for r in all_reports if r.get("data_status") in ("pending_ai", "complete")
-    )
-    total_with_ai = sum(1 for r in all_reports if r.get("data_status") == "complete")
+        _inject_data_status(r)
 
     return {
         "count": len(reports),
@@ -376,7 +400,7 @@ async def api_financial_reports(
 @app.get("/api/financial-regions")
 async def api_financial_regions():
     """Return distinct region keys found in collected financial reports."""
-    reports, _ = load_financial_reports(db_url=_db_url)
+    reports, _ = load_financial_history(db_url=_db_url)
     regions: set[str] = set()
     for r in reports:
         for reg in r.get("regions") or []:
@@ -399,7 +423,9 @@ async def api_financial_history(
     Returns:
         Historical financial records sorted by ticker and report_date descending.
     """
-    history = load_financial_history(ticker=ticker, periods=periods, db_url=_db_url)
+    history = load_financial_history_simple(
+        ticker=ticker, periods=periods, db_url=_db_url
+    )
 
     # Convert to USD
     currencies = {(r.get("currency") or "USD").upper() for r in history}
@@ -428,7 +454,7 @@ async def api_financial_sectors():
     Provides aggregated financial metrics (total revenue, avg growth, etc.)
     across companies grouped by sector and industry.
     """
-    reports, _ = load_financial_reports(db_url=_db_url)
+    reports, _ = load_financial_history(db_url=_db_url)
     # Exclude error reports
     reports = [r for r in reports if not r.get("error")]
 
@@ -570,7 +596,7 @@ async def api_financial_rankings(
     Returns:
         Ranked list of companies with their metrics.
     """
-    reports, _ = load_financial_reports(db_url=_db_url)
+    reports, _ = load_financial_history(db_url=_db_url)
     # Exclude error reports
     reports = [r for r in reports if not r.get("error")]
 
@@ -662,7 +688,7 @@ async def api_company_scores(
     - Sortable by various metrics
     - Paginated results with total count
     """
-    reports, total = load_financial_reports(
+    reports, total = load_financial_history(
         require_health_score=True,
         sector=sector,
         industry=industry,
@@ -757,7 +783,7 @@ async def api_company_scores_distribution(
     sector: str | None = Query(default=None),
 ):
     """Return distribution statistics for health and potential scores."""
-    reports, _ = load_financial_reports(db_url=_db_url)
+    reports, _ = load_financial_history(db_url=_db_url)
     # Exclude error reports and those without health scores
     reports = [
         r for r in reports if not r.get("error") and r.get("health_score") is not None
@@ -807,7 +833,7 @@ async def api_company_scores_distribution(
 @app.get("/api/company-scores/filters")
 async def api_company_scores_filters():
     """Return available sectors and industries for filtering."""
-    reports, _ = load_financial_reports(db_url=_db_url)
+    reports, _ = load_financial_history(db_url=_db_url)
     reports = [
         r for r in reports if not r.get("error") and r.get("health_score") is not None
     ]

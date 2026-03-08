@@ -654,15 +654,21 @@ def load_financial_reports(
     max_health: int | None = None,
     min_potential: int | None = None,
     max_potential: int | None = None,
+    report_year: int | None = None,
+    report_quarter: int | None = None,
     sort_by: str = "ticker",
     limit: int | None = None,
     offset: int | None = None,
+    latest_only: bool = False,
     db_url: str | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
     """Load financial reports with optional filters and pagination.
 
     Args:
         require_health_score: If True, only return reports with a health_score.
+        latest_only: If True, return only the latest report per ticker.
+        report_year: Filter by report year (e.g., 2026).
+        report_quarter: Filter by report quarter (1-4, or 0 for annual).
 
     Returns:
         Tuple of (reports list, total count).
@@ -705,6 +711,12 @@ def load_financial_reports(
     if max_potential is not None:
         clauses.append("potential_score <= %(max_potential)s")
         params["max_potential"] = max_potential
+    if report_year is not None:
+        clauses.append("report_year = %(report_year)s")
+        params["report_year"] = report_year
+    if report_quarter is not None:
+        clauses.append("report_quarter = %(report_quarter)s")
+        params["report_quarter"] = report_quarter
 
     where_sql = "WHERE " + " AND ".join(clauses) if clauses else ""
 
@@ -738,14 +750,38 @@ def load_financial_reports(
     nulls_order = "NULLS LAST" if sort_dir == "DESC" else "NULLS LAST"
     order_sql = f"ORDER BY {sort_by} {sort_dir} {nulls_order}"
 
-    # Get total count
-    count_query = f"SELECT COUNT(*) as total FROM financial_reports {where_sql}"
-
-    query = f"""
-        SELECT * FROM financial_reports
-        {where_sql}
-        {order_sql}
-    """
+    # Build query - if latest_only, use DISTINCT ON to get one row per ticker
+    if latest_only:
+        # For latest_only, we first get the latest report per ticker using DISTINCT ON
+        # Then apply the final sorting and pagination
+        # DISTINCT ON returns the first row of each set where ticker is the same
+        # The ORDER BY must start with the DISTINCT ON column(s)
+        # Use report_period to get the latest financial report (not collected_at)
+        count_query = f"""
+            SELECT COUNT(*) as total FROM (
+                SELECT DISTINCT ON (ticker) *
+                FROM financial_reports
+                {where_sql}
+                ORDER BY ticker, report_period DESC NULLS LAST
+            ) AS latest_per_ticker
+        """
+        query = f"""
+            SELECT * FROM (
+                SELECT DISTINCT ON (ticker) *
+                FROM financial_reports
+                {where_sql}
+                ORDER BY ticker, report_period DESC NULLS LAST
+            ) AS latest_per_ticker
+            {order_sql}
+        """
+    else:
+        # Get total count
+        count_query = f"SELECT COUNT(*) as total FROM financial_reports {where_sql}"
+        query = f"""
+            SELECT * FROM financial_reports
+            {where_sql}
+            {order_sql}
+        """
 
     # Add pagination
     if limit is not None and limit > 0:
@@ -778,6 +814,9 @@ def load_financial_history(
     report_period: str | None = None,
     sector: str | None = None,
     industry: str | None = None,
+    region: str | None = None,
+    search: str | None = None,
+    latest_only: bool = False,
     sort_by: str = "ticker",
     limit: int | None = None,
     offset: int | None = None,
@@ -790,6 +829,9 @@ def load_financial_history(
         report_period: Filter by report period (e.g. '2025-Q4').
         sector: Filter by sector.
         industry: Filter by industry.
+        region: Filter by region (checks regions array column).
+        search: Search in company_name and ticker.
+        latest_only: If True, return only the latest report per ticker.
         sort_by: Sort field (default: ticker).
         limit: Limit number of results.
         offset: Offset for pagination.
@@ -816,17 +858,52 @@ def load_financial_history(
     if industry:
         clauses.append("industry = %(industry)s")
         params["industry"] = industry
+    if region:
+        clauses.append("%(region)s = ANY(regions)")
+        params["region"] = region
+    if search:
+        clauses.append("(company_name ILIKE %(search)s OR ticker ILIKE %(search)s)")
+        params["search"] = f"%{search}%"
 
     where_sql = "WHERE " + " AND ".join(clauses) if clauses else ""
 
     # Validate sort field
-    valid_sort_fields = {"ticker", "company_name", "report_period", "report_date", "revenue", "collected_at"}
+    valid_sort_fields = {
+        "ticker",
+        "company_name",
+        "report_period",
+        "report_date",
+        "revenue",
+        "collected_at",
+        "health_score",
+    }
     if sort_by not in valid_sort_fields:
         sort_by = "ticker"
-    order_sql = f"ORDER BY {sort_by} ASC NULLS LAST"
 
-    count_query = f"SELECT COUNT(*) as total FROM financial_history {where_sql}"
-    query = f"SELECT * FROM financial_history {where_sql} {order_sql}"
+    if latest_only:
+        # Use DISTINCT ON to get latest report per ticker
+        count_query = f"""
+            SELECT COUNT(*) as total FROM (
+                SELECT DISTINCT ON (ticker) *
+                FROM financial_history
+                {where_sql}
+                ORDER BY ticker, report_date DESC NULLS LAST
+            ) AS latest_per_ticker
+        """
+        order_sql = f"ORDER BY {sort_by} ASC NULLS LAST"
+        query = f"""
+            SELECT * FROM (
+                SELECT DISTINCT ON (ticker) *
+                FROM financial_history
+                {where_sql}
+                ORDER BY ticker, report_date DESC NULLS LAST
+            ) AS latest_per_ticker
+            {order_sql}
+        """
+    else:
+        count_query = f"SELECT COUNT(*) as total FROM financial_history {where_sql}"
+        order_sql = f"ORDER BY {sort_by} ASC NULLS LAST"
+        query = f"SELECT * FROM financial_history {where_sql} {order_sql}"
 
     if limit is not None:
         query += " LIMIT %(limit)s"
@@ -1240,7 +1317,7 @@ def save_financial_history(
     logger.info("Saved %d historical financial records", len(clean))
 
 
-def load_financial_history(
+def load_financial_history_simple(
     ticker: str | None = None,
     periods: int | None = None,
     *,
@@ -1319,6 +1396,39 @@ def get_collected_tickers(
             cur.execute("SELECT ticker, report_period FROM financial_reports;")
             rows = cur.fetchall()
     return {r["ticker"]: r["report_period"] for r in rows if r.get("ticker")}
+
+
+def get_latest_collection_date(ticker: str | None = None) -> datetime | None:
+    """Get the latest collection date for a ticker or globally.
+
+    Args:
+        ticker: Optional ticker symbol. If None, returns the most recent
+                collection date across all tickers.
+
+    Returns:
+        datetime of latest collection, or None if no data found.
+    """
+    with _use_connection() as conn:
+        _ensure_schema(conn)
+        conn.row_factory = dict_row
+        with conn.cursor() as cur:
+            if ticker:
+                cur.execute(
+                    """
+                    SELECT MAX(collected_at) as latest_date 
+                    FROM financial_history 
+                    WHERE ticker = %(ticker)s;
+                    """,
+                    {"ticker": ticker},
+                )
+            else:
+                cur.execute(
+                    "SELECT MAX(collected_at) as latest_date FROM financial_history;",
+                )
+            result = cur.fetchone()
+    if result and result.get("latest_date"):
+        return result["latest_date"]
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -1416,6 +1526,7 @@ def query_collected_items(
     # Validate date format - must be YYYY-MM-DD
     if date:
         import re
+
         if not re.match(r"^\d{4}-\d{2}-\d{2}$", date):
             # Invalid date format - return empty results instead of crashing
             return [], 0
