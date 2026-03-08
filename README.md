@@ -115,24 +115,32 @@ python -m newscollector serve --port 8080 --host 0.0.0.0
 ### Financial Reports
 
 ```bash
-# Collect financial reports for top companies using yfinance
-python -m newscollector collect-reports
-python -m newscollector collect-reports --region us_300
-python -m newscollector collect-reports --region us_300 --region china_300
-python -m newscollector collect-reports --delay 0.3
+# Collect financial reports (unified command - replaces collect-reports, collect-history, evaluate-reports)
+python -m newscollector collect-financial-reports
+python -m newscollector collect-financial-reports --region us_300
+python -m newscollector collect-financial-reports --region us_300 --region china_300
+python -m newscollector collect-financial-reports --delay 0.3
 
 # Collect historical financial data (last N quarters for trend analysis)
-python -m newscollector collect-history
-python -m newscollector collect-history --region us_300 --periods 8
+python -m newscollector collect-financial-reports --history
+python -m newscollector collect-financial-reports --history --region us_300 --periods 8
 
-# Evaluate/re-evaluate financial reports with AI (requires AI configuration)
-python -m newscollector evaluate-reports
-python -m newscollector evaluate-reports --region us_300 --ticker AAPL
-python -m newscollector evaluate-reports --only-missing
+# Run AI analysis on collected reports
+python -m newscollector collect-financial-reports --ai-analyze
+python -m newscollector collect-financial-reports --ai-analyze --region us_300 --ticker AAPL
+python -m newscollector collect-financial-reports --ai-analyze --only-missing
 
-# Clean up broken/empty financial reports
-python -m newscollector clean-reports
-python -m newscollector clean-reports --refetch  # Re-fetch data before removing
+# Force refresh even if data is less than 3 months old
+python -m newscollector collect-financial-reports --force --region us_300
+
+# Collect + analyze in one command
+python -m newscollector collect-financial-reports --region us_300 --ai-analyze
+
+# Deprecated commands (still work but will be removed in v2.0):
+# python -m newscollector collect-reports      -> Use: collect-financial-reports
+# python -m newscollector collect-history      -> Use: collect-financial-reports --history
+# python -m newscollector evaluate-reports     -> Use: collect-financial-reports --ai-analyze
+# python -m newscollector clean-reports        -> Removed (not needed with history-based approach)
 
 # Update company names in config/companies.yaml from yfinance
 python -m newscollector update-companies

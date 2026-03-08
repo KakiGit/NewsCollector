@@ -38,10 +38,17 @@ python -m newscollector list-platforms
 # Start web UI
 python -m newscollector serve
 
-# Financial report collection
-python -m newscollector collect-reports --region us_300
-python -m newscollector evaluate-reports
-python -m newscollector clean-reports
+# Financial report collection (unified command)
+python -m newscollector collect-financial-reports --region us_300
+python -m newscollector collect-financial-reports --history --region us_300
+python -m newscollector collect-financial-reports --ai-analyze --only-missing
+python -m newscollector collect-financial-reports --force --region us_300
+
+# Deprecated (still works with warning):
+python -m newscollector collect-reports      # Use: collect-financial-reports
+python -m newscollector collect-history      # Use: collect-financial-reports --history
+python -m newscollector evaluate-reports     # Use: collect-financial-reports --ai-analyze
+python -m newscollector clean-reports        # Removed
 
 # Run tests
 pytest
@@ -77,7 +84,7 @@ pytest tests/test_collector.py::test_function_name -v
 
 - **`newscollector/web.py`** - FastAPI web UI for browsing collected items
 
-- **`newscollector/financial.py`** - Financial report collection using yfinance, with AI evaluation support
+- **`newscollector/financial.py`** - Financial report collection using yfinance. Unified command `collect-financial-reports` supports latest/history collection, AI analysis, and 3-month freshness check
 
 ### Data Flow
 
