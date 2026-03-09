@@ -26,6 +26,7 @@ from newscollector.utils.storage import (
     load_daily_verdicts,
     load_financial_history,
     load_financial_history_simple,
+    load_financial_reports,
     query_collected_items,
 )
 
@@ -688,7 +689,7 @@ async def api_company_scores(
     - Sortable by various metrics
     - Paginated results with total count
     """
-    reports, total = load_financial_history(
+    reports, total = load_financial_reports(
         require_health_score=True,
         sector=sector,
         industry=industry,
@@ -699,6 +700,7 @@ async def api_company_scores(
         sort_by=sort_by,
         limit=None,  # No limit - show all items
         offset=offset,
+        latest_only=True,
         db_url=_db_url,
     )
 

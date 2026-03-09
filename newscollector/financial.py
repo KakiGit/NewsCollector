@@ -411,6 +411,7 @@ def _fetch_company_history(
                         industry,
                         currency,
                         col_data,
+                        info.get("marketCap"),
                     )
                     if record:
                         history.append(record)
@@ -437,6 +438,7 @@ def _fetch_company_history(
                             industry,
                             currency,
                             col_data,
+                            info.get("marketCap"),
                         )
                         if record:
                             # Avoid duplicates (same period might appear in both)
@@ -469,6 +471,7 @@ def _build_history_record(
     industry: str | None,
     currency: str | None,
     col_data: Any,
+    market_cap: float | None = None,
 ) -> dict[str, Any] | None:
     """Build a historical record from financial data column."""
     revenue = _safe_float(col_data, "Total Revenue")
@@ -497,7 +500,7 @@ def _build_history_record(
         "total_debt": None,
         "operating_cash_flow": None,  # Not in financials, needs cash flow
         "free_cash_flow": None,
-        "market_cap": None,  # From info, changes daily
+        "market_cap": market_cap,
         "pe_ratio": None,
         "revenue_growth": None,  # Needs comparison
         "profit_margin": (

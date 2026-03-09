@@ -460,32 +460,33 @@
           </div>
         </div>
 
-        <!-- Report Period Slider -->
+        <!-- Report Period Buttons -->
         <div class="lg:col-span-6">
           <label class="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">Report Period</label>
-          <div class="flex items-center gap-4">
-            <input type="range" x-model="finReportPeriodIdx" @input="fetchFinancialReports()"
-                   min="0" :max="availablePeriods.length > 0 ? availablePeriods.length - 1 : 0" step="1"
-                   class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-            <div class="flex flex-col items-center min-w-[100px] px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-200">
-              <span class="text-base font-bold text-indigo-700" x-text="formatPeriodDisplay()"></span>
-              <span class="text-[10px] text-gray-600" x-text="getCurrentPeriodCount() + ' companies'"></span>
-            </div>
-          </div>
-          <!-- Period labels below slider -->
-          <div class="flex justify-between mt-2 text-[10px] text-gray-400 px-1" x-show="availablePeriods.length > 0">
-            <span x-text="availablePeriods[0]?.period || ''"></span>
-            <span x-text="availablePeriods.length > 1 ? (availablePeriods[Math.floor(availablePeriods.length / 2)]?.period || '') : ''"></span>
-            <span x-text="availablePeriods.length > 2 ? (availablePeriods[availablePeriods.length - 1]?.period || '') : ''"></span>
-          </div>
-          <!-- All periods toggle -->
-          <div class="mt-2">
+          <div class="flex flex-wrap gap-2">
+            <!-- All Periods button -->
             <button @click="finReportPeriodIdx = -1; fetchFinancialReports()"
-                    :class="finReportPeriodIdx === -1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-                    class="px-3 py-1 text-xs font-medium rounded-md transition-colors">
+                    :class="finReportPeriodIdx === -1 ? 'bg-indigo-600 text-white ring-2 ring-indigo-300' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'"
+                    class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors">
               All Periods
             </button>
+            <!-- Latest button -->
+            <button @click="finReportPeriodIdx = -2; fetchFinancialReports()"
+                    :class="finReportPeriodIdx === -2 ? 'bg-indigo-600 text-white ring-2 ring-indigo-300' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'"
+                    class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors">
+              Latest
+            </button>
+            <!-- Individual period buttons -->
+            <template x-for="p in availablePeriods" :key="p.period">
+              <button @click="selectPeriod(p); fetchFinancialReports()"
+                      :class="finReportPeriodIdx === availablePeriods.indexOf(p) ? 'bg-indigo-600 text-white ring-2 ring-indigo-300' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'"
+                      class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+                <span x-text="p.period.replace('FY', ' (FY)')"></span>
+                <span class="text-xs opacity-70" x-text="p.count"></span>
+              </button>
+            </template>
           </div>
+          <p class="mt-2 text-xs text-gray-500" x-show="availablePeriods.length === 0">No periods available. Fetch reports first.</p>
         </div>
       </div>
     </div>
@@ -1181,7 +1182,7 @@
         finSectorCount: 0,
         // Period filter state
         availablePeriods: [], // [{period: "26Q1", year: 2026, quarter: 1, count: N}]
-        finReportPeriodIdx: -1, // Index into availablePeriods, -1 for all periods (shows latest per ticker by default)
+        finReportPeriodIdx: -2, // -1=all periods, -2=latest only, 0+=specific period index
         // Pagination state - Financial reports
         finPagination: {
           total: 0,
@@ -1485,7 +1486,7 @@
             }
             this.financialReports = reports;
             this.finWithAI = data.with_ai || 0;
-            // Update available periods after loading reports
+            // Always update available periods so buttons are always shown
             this.updateAvailablePeriods();
             this.sortFinancialReports();
             this.computeFinStats();
@@ -1874,35 +1875,44 @@
         updateAvailablePeriods() {
           const periodMap = new Map();
           this.financialReports.forEach(r => {
-            const year = r.report_year;
-            const quarter = r.report_quarter;
-            if (year && quarter !== null && quarter !== undefined) {
-              const shortYear = year % 100;
-              const qNum = quarter === 0 ? 'FY' : `Q${quarter}`;
-              const key = `${shortYear}${qNum}`;
-              const sortKey = year * 10 + (quarter === 0 ? 4 : quarter);
-              if (!periodMap.has(key)) {
-                periodMap.set(key, { period: key, year, quarter, sortKey, count: 0 });
-              }
-              periodMap.get(key).count++;
+            // Parse report_period string like "2026-Q1" or "2025-FY"
+            const reportPeriod = r.report_period;
+            if (!reportPeriod) return;
+            
+            const match = reportPeriod.match(/^(\d{4})-(?:Q(\d)|FY)$/);
+            if (!match) return;
+            
+            const year = parseInt(match[1], 10);
+            const quarter = match[2] ? parseInt(match[2], 10) : 0;
+            const shortYear = year % 100;
+            const qNum = quarter === 0 ? 'FY' : `Q${quarter}`;
+            const key = `${shortYear}${qNum}`;
+            const sortKey = year * 10 + (quarter === 0 ? 4 : quarter);
+            
+            if (!periodMap.has(key)) {
+              periodMap.set(key, { period: reportPeriod, year, quarter, sortKey, count: 0 });
             }
+            periodMap.get(key).count++;
           });
           this.availablePeriods = Array.from(periodMap.values())
             .sort((a, b) => b.sortKey - a.sortKey);
-          if (this.availablePeriods.length > 0 && this.finReportPeriodIdx === 0) {
-            this.finReportPeriodIdx = 0;
-          }
+        },
+        
+        selectPeriod(periodObj) {
+          const idx = this.availablePeriods.findIndex(p => p.period === periodObj.period);
+          this.finReportPeriodIdx = idx >= 0 ? idx : -1;
         },
 
         formatPeriodDisplay() {
           if (this.finReportPeriodIdx === -1) return 'All Periods';
+          if (this.finReportPeriodIdx === -2) return 'Latest';
           const p = this.availablePeriods[this.finReportPeriodIdx];
           if (!p) return 'Select period';
-          return p.period.replace('FY', ' (Annual)');
+          return p.period.replace('-FY', ' (FY)').replace('-Q', ' Q');
         },
 
         getCurrentPeriodCount() {
-          if (this.finReportPeriodIdx === -1) {
+          if (this.finReportPeriodIdx === -1 || this.finReportPeriodIdx === -2) {
             return this.financialReports.length;
           }
           const p = this.availablePeriods[this.finReportPeriodIdx];
@@ -1911,7 +1921,9 @@
 
         getPeriodQueryParams() {
           const params = new URLSearchParams();
-          if (this.finReportPeriodIdx !== -1 && this.finReportPeriodIdx < this.availablePeriods.length) {
+          // -1 = All Periods, -2 = Latest, 0+ = specific period
+          // Only set report_year/report_quarter for specific periods (index >= 0)
+          if (this.finReportPeriodIdx >= 0 && this.finReportPeriodIdx < this.availablePeriods.length) {
             const p = this.availablePeriods[this.finReportPeriodIdx];
             if (p) {
               params.set('report_year', String(p.year));
