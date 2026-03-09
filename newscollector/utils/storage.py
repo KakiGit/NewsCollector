@@ -816,6 +816,11 @@ def load_financial_history(
     industry: str | None = None,
     region: str | None = None,
     search: str | None = None,
+    require_health_score: bool = False,
+    min_health: int | None = None,
+    max_health: int | None = None,
+    min_potential: int | None = None,
+    max_potential: int | None = None,
     latest_only: bool = False,
     sort_by: str = "ticker",
     limit: int | None = None,
@@ -831,6 +836,11 @@ def load_financial_history(
         industry: Filter by industry.
         region: Filter by region (checks regions array column).
         search: Search in company_name and ticker.
+        require_health_score: If True, only return records with health_score.
+        min_health: Minimum health_score filter.
+        max_health: Maximum health_score filter.
+        min_potential: Minimum potential_score filter.
+        max_potential: Maximum potential_score filter.
         latest_only: If True, return only the latest report per ticker.
         sort_by: Sort field (default: ticker).
         limit: Limit number of results.
@@ -864,6 +874,20 @@ def load_financial_history(
     if search:
         clauses.append("(company_name ILIKE %(search)s OR ticker ILIKE %(search)s)")
         params["search"] = f"%{search}%"
+    if require_health_score:
+        clauses.append("health_score IS NOT NULL")
+    if min_health is not None:
+        clauses.append("health_score >= %(min_health)s")
+        params["min_health"] = min_health
+    if max_health is not None:
+        clauses.append("health_score <= %(max_health)s")
+        params["max_health"] = max_health
+    if min_potential is not None:
+        clauses.append("potential_score >= %(min_potential)s")
+        params["min_potential"] = min_potential
+    if max_potential is not None:
+        clauses.append("potential_score <= %(max_potential)s")
+        params["max_potential"] = max_potential
 
     where_sql = "WHERE " + " AND ".join(clauses) if clauses else ""
 

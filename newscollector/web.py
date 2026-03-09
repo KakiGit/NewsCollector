@@ -689,7 +689,7 @@ async def api_company_scores(
     - Sortable by various metrics
     - Paginated results with total count
     """
-    reports, total = load_financial_reports(
+    reports, total = load_financial_history(
         require_health_score=True,
         sector=sector,
         industry=industry,
